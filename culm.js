@@ -51,9 +51,15 @@ let insert_true_stats = async() => {
 let download_mwdeck = async(page, deck_url) => {
 	do {
 		var success = true;
-		await fs.rmdirSync(download_folder);
-		await fs.mkdirSync(download_folder);
-		
+
+		try {
+			await fs.rmdirSync(download_folder);
+		} catch (e) {}
+
+		try {
+			await fs.mkdirSync(download_folder);
+		} catch (e) {}
+
 		try {
 			await page.goto(deck_url);
 			await page.waitForSelector('body > div.page > div > table > tbody > tr > td:nth-child(2) > table:nth-child(2) > tbody > tr > td:nth-child(2) > div > a:nth-child(2)');
@@ -81,10 +87,10 @@ let parse_mwdeck = async(deck_url) => {
 	}
 
 	const temp_filepath = './current.mwDeck';
-	
+
 	try {
 		await fs.unlinkSync(temp_filepath);
-	} catch (e) { }
+	} catch (e) {}
 
 	const original_filepath = './downloads/' + filename;
 	await fs.writeFileSync(temp_filepath, fs.readFileSync(original_filepath, 'utf8'), {
