@@ -13,8 +13,10 @@ const pool = new Pool({
 
 const puppeteer = require('puppeteer');
 
+const download_folder = 'C:\\Users\\SentientScythe\\MtGTop8Scraper\\downloads';
+
 let insert_true_stats = async() => {
-	const select_decks = 'SELECT deck_url FROM mtg.tournament_decks WHERE cards IS NULL';
+	const select_decks = 'SELECT deck_url FROM mtg.tournament_decks WHERE cards IS NULL ORDER BY deck_url';
 	const client = await pool.connect();
 	const deck_urls = await client.query(select_decks);
 	await client.release();
@@ -25,7 +27,7 @@ let insert_true_stats = async() => {
 	var page = await browser.newPage();
 	await page._client.send('Page.setDownloadBehavior', {
 		behavior: 'allow',
-		downloadPath: 'C:\\Users\\SentientScythe\\MtGTop8Scraper\\downloads'
+		downloadPath: download_folder
 	});
 
 	for (const deck_url of deck_urls.rows) {
@@ -49,7 +51,9 @@ let insert_true_stats = async() => {
 let download_mwdeck = async(page, deck_url) => {
 	do {
 		var success = true;
-
+		await fs.rmdirSync(download_folder);
+		await fs.mkdirSync(download_folder);
+		
 		try {
 			await page.goto(deck_url);
 			await page.waitForSelector('body > div.page > div > table > tbody > tr > td:nth-child(2) > table:nth-child(2) > tbody > tr > td:nth-child(2) > div > a:nth-child(2)');
@@ -66,6 +70,8 @@ let parse_mwdeck = async(deck_url) => {
 
 	if (fileList.length == 0) {
 		throw new Error('Mwdeck download is missing!');
+	} else if (fileList.length > 1) {
+		throw new Error('Multiple mwdeck files found!');
 	}
 
 	const filename = fileList[0];
@@ -75,6 +81,11 @@ let parse_mwdeck = async(deck_url) => {
 	}
 
 	const temp_filepath = './current.mwDeck';
+	
+	try {
+		await fs.unlinkSync(temp_filepath);
+	} catch (e) { }
+
 	const original_filepath = './downloads/' + filename;
 	await fs.writeFileSync(temp_filepath, fs.readFileSync(original_filepath, 'utf8'), {
 		encoding: 'utf8',
