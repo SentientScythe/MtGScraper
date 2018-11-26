@@ -1,0 +1,1 @@
+﻿SELECT mode() WITHIN GROUP (ORDER BY player) AS modal_value FROM mtg.tournament_decks WHERE rank = '1' AND format = 'Modern';

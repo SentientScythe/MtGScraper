@@ -1,0 +1,25 @@
+{
+  "name": "scrape_download_harvest",
+  "version": "0.3.0",
+  "description": "A puppeteer app that scrapes data from mtgtop8, downloads a given set of deck files from them, then uploads the deck files to deck stats to harvest the statistics",
+  "main": "scraper.js",
+  "scripts": {
+    "start": "node scraper.js",
+    "debug": "node --inspect-brk scraper.js"
+  },
+  "dependencies": {
+    "bluebird": "^3.5.1",
+    "log4js": "^3.0.5",
+    "math": "0.0.3",
+    "npm": "^6.4.1",
+    "pg": "^7.4.3",
+    "puppeteer": "^1.7.0",
+    "unicode-escape": "^0.1.0"
+  },
+  "engines": {
+    "node": "8.11.3"
+  },
+  "author": "Scott Lamb",
+  "private": true,
+  "license": "UNLICENSED"
+}
