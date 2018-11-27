@@ -43,8 +43,8 @@ let insert_true_stats = async() => {
 			} catch (e) {}
 
 			try {
-				await download_mwdeck(page, deck_url["deck_url"]);
-				await parse_mwdeck(deck_url["deck_url"]);
+				await download_mwdeck(page, deck_url.deck_url);
+				await parse_mwdeck(deck_url.deck_url);
 			} catch (e) {
 				success = false;
 			}
