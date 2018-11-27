@@ -71,15 +71,20 @@ let download_mwdeck = async(page, deck_url) => {
 			}
 
 			var fileList = [];
-			while (fileList.length == 0) {
-				fileList = await fs.readdirSync('./downloads');
-			}
-
+			var filename = '';
 			var i = 0;
-			var filename = fileList[i];
-			while (!filename.includes('.mwDeck')) {
+
+			while (fileList.length == 0 && !filename.includes('.mwDeck') && filename.includes('.crdownload')) {
+				try {
+					fileList = await fs.readdirSync('./downloads');
+					filename = fileList[0];
+				} catch (e) {}
+
+				if (i >= 128) {
+					break;
+				}
+
 				i++;
-				filename = fileList[i];
 			}
 		} catch (e) {
 			success = false;
@@ -96,12 +101,11 @@ let parse_mwdeck = async(deck_url) => {
 
 	const fileList = await fs.readdirSync('./downloads');
 	const filename = fileList[0];
-	const original_filepath = './downloads/' + filename;
+	const original_filepath = './downloads/' + escape(filename);
 	await fs.writeFileSync(temp_filepath, fs.readFileSync(original_filepath, 'utf8'), {
 		encoding: 'utf8',
 		flag: 'w'
 	});
-	await fs.unlinkSync(original_filepath);
 
 	const client = await pool.connect();
 
