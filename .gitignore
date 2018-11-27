@@ -76,3 +76,4 @@ typings/
 .fusebox/
 *.csv
 *.txt
+*.mwDeck

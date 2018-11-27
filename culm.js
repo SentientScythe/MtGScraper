@@ -13,9 +13,8 @@ const pool = new Pool({
 
 const puppeteer = require('puppeteer');
 
-const download_folder = 'C:\\Users\\SentientScythe\\MtGTop8Scraper\\downloads';
-
 let insert_true_stats = async() => {
+	const download_folder = 'C:\\Users\\SentientScythe\\MtGTop8Scraper\\downloads';
 	const select_decks = 'SELECT deck_url FROM mtg.tournament_decks WHERE cards IS NULL ORDER BY deck_url';
 	const client = await pool.connect();
 	const deck_urls = await client.query(select_decks);
@@ -33,6 +32,13 @@ let insert_true_stats = async() => {
 	for (const deck_url of deck_urls.rows) {
 		do {
 			var success = true;
+			try {
+				await fs.rmdirSync(download_folder);
+			} catch (e) {}
+
+			try {
+				await fs.mkdirSync(download_folder);
+			} catch (e) {}
 
 			try {
 				await download_mwdeck(page, deck_url["deck_url"]);
@@ -53,17 +59,26 @@ let download_mwdeck = async(page, deck_url) => {
 		var success = true;
 
 		try {
-			await fs.rmdirSync(download_folder);
-		} catch (e) {}
-
-		try {
-			await fs.mkdirSync(download_folder);
-		} catch (e) {}
-
-		try {
 			await page.goto(deck_url);
 			await page.waitForSelector('body > div.page > div > table > tbody > tr > td:nth-child(2) > table:nth-child(2) > tbody > tr > td:nth-child(2) > div > a:nth-child(2)');
-			await page.click('body > div.page > div > table > tbody > tr > td:nth-child(2) > table:nth-child(2) > tbody > tr > td:nth-child(2) > div > a:nth-child(2)');
+
+			try {
+				await page.click('body > div.page > div > table > tbody > tr > td:nth-child(2) > table:nth-child(2) > tbody > tr > td:nth-child(2) > div > a:nth-child(3)');
+			} catch (e) {
+				await page.click('body > div.page > div > table > tbody > tr > td:nth-child(2) > table:nth-child(2) > tbody > tr > td:nth-child(2) > div > a:nth-child(2)');
+			}
+
+			var fileList = [];
+			while (fileList.length == 0) {
+				fileList = await fs.readdirSync('./downloads');
+			}
+
+			var i = 0;
+			var filename = fileList[i];
+			while (!filename.includes('.mwDeck')) {
+				i++;
+				filename = fileList[i];
+			}
 		} catch (e) {
 			success = false;
 		}
@@ -71,27 +86,14 @@ let download_mwdeck = async(page, deck_url) => {
 }
 
 let parse_mwdeck = async(deck_url) => {
-	var fileList = [];
-	fileList = await fs.readdirSync('./downloads');
-
-	if (fileList.length == 0) {
-		throw new Error('Mwdeck download is missing!');
-	} else if (fileList.length > 1) {
-		throw new Error('Multiple mwdeck files found!');
-	}
-
-	const filename = fileList[0];
-
-	if (filename == undefined) {
-		throw new Error('Filename is undefined!');
-	}
-
 	const temp_filepath = './current.mwDeck';
 
 	try {
 		await fs.unlinkSync(temp_filepath);
 	} catch (e) {}
 
+	const fileList = await fs.readdirSync('./downloads');
+	const filename = fileList[0];
 	const original_filepath = './downloads/' + filename;
 	await fs.writeFileSync(temp_filepath, fs.readFileSync(original_filepath, 'utf8'), {
 		encoding: 'utf8',
