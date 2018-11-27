@@ -33,7 +33,7 @@ let insert_true_stats = async() => {
 		do {
 			var success = true;
 			try {
-				await fs.rmdirSync(download_folder);
+				await rimrafSync(download_folder);
 			} catch (e) {}
 
 			try {
