@@ -3,6 +3,8 @@ Promise.longStackTraces();
 
 const fs = require('fs');
 
+const rimraf = require('rimraf');
+
 const {
 	Pool
 } = require('pg');
@@ -33,7 +35,7 @@ let insert_true_stats = async() => {
 		do {
 			var success = true;
 			try {
-				await rimrafSync(download_folder);
+				await rimraf.sync(download_folder);
 			} catch (e) {}
 
 			try {
