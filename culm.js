@@ -34,6 +34,7 @@ let insert_true_stats = async() => {
 	for (const deck_url of deck_urls.rows) {
 		do {
 			var success = true;
+
 			try {
 				await rimraf.sync(download_folder);
 			} catch (e) {}
@@ -72,7 +73,7 @@ let download_mwdeck = async(page, deck_url) => {
 
 			var fileList = [];
 			var filename = '';
-			var i = 0;
+			var retry = 0;
 
 			while (fileList.length == 0 && !filename.includes('.mwDeck') && filename.includes('.crdownload')) {
 				try {
@@ -80,11 +81,11 @@ let download_mwdeck = async(page, deck_url) => {
 					filename = fileList[0];
 				} catch (e) {}
 
-				if (i >= 128) {
+				if (retry >= 128) {
 					break;
 				}
 
-				i++;
+				retry++;
 			}
 		} catch (e) {
 			success = false;
@@ -94,14 +95,15 @@ let download_mwdeck = async(page, deck_url) => {
 
 let parse_mwdeck = async(deck_url) => {
 	const temp_filepath = './current.mwDeck';
+	const win_download_path = 'C:\\Users\\SentientScythe\\MtGTop8Scraper\\downloads';
 
 	try {
 		await fs.unlinkSync(temp_filepath);
 	} catch (e) {}
 
-	const fileList = await fs.readdirSync('./downloads');
+	const fileList = await fs.readdirSync(win_download_path);
 	const filename = fileList[0];
-	const original_filepath = './downloads/' + escape(filename);
+	const original_filepath = win_download_path + '\\\"' + filename + '\"';
 	await fs.writeFileSync(temp_filepath, fs.readFileSync(original_filepath, 'utf8'), {
 		encoding: 'utf8',
 		flag: 'w'
@@ -109,7 +111,7 @@ let parse_mwdeck = async(deck_url) => {
 
 	const client = await pool.connect();
 
-	const copy_into_temp = 'DROP TABLE IF EXISTS mwdeck_import; CREATE TEMP TABLE IF NOT EXISTS mwdeck_import(line text); COPY mwdeck_import FROM \'C:\\Users\\SentientScythe\\MtGTop8Scraper\\current.mwDeck\'';
+	const copy_into_temp = "DROP TABLE IF EXISTS mwdeck_import; CREATE TEMP TABLE IF NOT EXISTS mwdeck_import(line text); COPY mwdeck_import FROM 'C:\\Users\\SentientScythe\\MtGTop8Scraper\\current.mwDeck'";
 	await client.query(copy_into_temp);
 	await fs.unlinkSync(temp_filepath);
 	const update_td_cards = 'UPDATE mtg.tournament_decks SET cards = ARRAY(TABLE mwdeck_import OFFSET 4) WHERE deck_url = $1';
