@@ -101,7 +101,7 @@ let parse_mwdeck = async(deck_url) => {
 
 	const fileList = await fs.readdirSync(download);
 	const filename = fileList[0];
-	const original_filepath = download + '/' + filename.replace(/\ /m, '\\ ');
+	const original_filepath = download + '/' + filename.replace(/\s/m, '_');
 	await fs.writeFileSync(temp_file, fs.readFileSync(original_filepath, 'utf8'), {
 		encoding: 'utf8',
 		flag: 'w'
