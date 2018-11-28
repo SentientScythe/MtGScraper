@@ -15,6 +15,8 @@ const pool = new Pool({
 
 const puppeteer = require('puppeteer');
 
+const download = './downloads';
+
 let insert_true_stats = async() => {
 	const download_folder = 'C:\\Users\\SentientScythe\\MtGTop8Scraper\\downloads';
 	const select_decks = 'SELECT deck_url FROM mtg.tournament_decks WHERE cards IS NULL ORDER BY deck_url';
@@ -73,19 +75,16 @@ let download_mwdeck = async(page, deck_url) => {
 
 			var fileList = [];
 			var filename = '';
-			var retry = 0;
 
-			while (fileList.length == 0 && !filename.includes('.mwDeck') && filename.includes('.crdownload')) {
+			while (fileList.length == 0 || filename.includes('.crdownload')) {
 				try {
-					fileList = await fs.readdirSync('./downloads');
+					fileList = await fs.readdirSync(download);
 					filename = fileList[0];
 				} catch (e) {}
+			}
 
-				if (retry >= 128) {
-					break;
-				}
-
-				retry++;
+			if (!filename.includes('.mwDeck')) {
+				throw new Error('File is in the wrong format!');
 			}
 		} catch (e) {
 			success = false;
@@ -94,17 +93,16 @@ let download_mwdeck = async(page, deck_url) => {
 }
 
 let parse_mwdeck = async(deck_url) => {
-	const temp_filepath = './current.mwDeck';
-	const win_download_path = 'C:\\Users\\SentientScythe\\MtGTop8Scraper\\downloads';
+	const temp_file = './current.mwDeck';
 
 	try {
-		await fs.unlinkSync(temp_filepath);
+		await fs.unlinkSync(temp_file);
 	} catch (e) {}
 
-	const fileList = await fs.readdirSync(win_download_path);
+	const fileList = await fs.readdirSync(download);
 	const filename = fileList[0];
-	const original_filepath = win_download_path + '\\\"' + filename + '\"';
-	await fs.writeFileSync(temp_filepath, fs.readFileSync(original_filepath, 'utf8'), {
+	const original_filepath = download + '/' + filename.replace(/\ /m, '\\ ');
+	await fs.writeFileSync(temp_file, fs.readFileSync(original_filepath, 'utf8'), {
 		encoding: 'utf8',
 		flag: 'w'
 	});
@@ -113,7 +111,7 @@ let parse_mwdeck = async(deck_url) => {
 
 	const copy_into_temp = "DROP TABLE IF EXISTS mwdeck_import; CREATE TEMP TABLE IF NOT EXISTS mwdeck_import(line text); COPY mwdeck_import FROM 'C:\\Users\\SentientScythe\\MtGTop8Scraper\\current.mwDeck'";
 	await client.query(copy_into_temp);
-	await fs.unlinkSync(temp_filepath);
+	await fs.unlinkSync(temp_file);
 	const update_td_cards = 'UPDATE mtg.tournament_decks SET cards = ARRAY(TABLE mwdeck_import OFFSET 4) WHERE deck_url = $1';
 	await client.query(update_td_cards, [deck_url]);
 
