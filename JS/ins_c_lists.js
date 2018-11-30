@@ -24,7 +24,7 @@ let insert_card_lists = async() => {
 	const temp_filepath = './done/current.mwDeck';
 	const temp_table_sql = 'CREATE TEMP TABLE mwdeck_import(line text)';
 	await client.query(temp_table_sql);
-	const staging_sql = 'TRUNCATE TABLE mwdeck_import; COPY mwdeck_import FROM \'C:\\Users\\SentientScythe\\MtGTop8Scraper\\done\\current.mwDeck\'; SELECT * FROM(SELECT REPLACE((TABLE mwdeck_import LIMIT 1 OFFSET 1)::text, \'// NAME : \', \'\') AS name, REPLACE((TABLE mwdeck_import LIMIT 1 OFFSET 2)::text, \'// CREATOR : \', \'\') player, REPLACE((TABLE mwdeck_import LIMIT 1 OFFSET 3)::text, \'// FORMAT : \', \'\') format, ARRAY(TABLE mwdeck_import OFFSET 4) cards) AS mwdeck;';
+	const staging_sql = 'TRUNCATE TABLE mwdeck_import; COPY mwdeck_import FROM \'C:\\Users\\SentientScythe\\MtGScraper\\done\\current.mwDeck\'; SELECT * FROM(SELECT REPLACE((TABLE mwdeck_import LIMIT 1 OFFSET 1)::text, \'// NAME : \', \'\') AS name, REPLACE((TABLE mwdeck_import LIMIT 1 OFFSET 2)::text, \'// CREATOR : \', \'\') player, REPLACE((TABLE mwdeck_import LIMIT 1 OFFSET 3)::text, \'// FORMAT : \', \'\') format, ARRAY(TABLE mwdeck_import OFFSET 4) cards) AS mwdeck;';
 	const insert_sql = 'INSERT INTO mtg.mwdecks(filename, name, creator, format, cards) VALUES($1, $2, $3, $4, $5)';
 
 	for (const file of fileList) {
