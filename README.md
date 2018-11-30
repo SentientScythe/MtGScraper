@@ -1,1 +1,1 @@
-# MtGTop8Scraper
+# MtG Scraper
