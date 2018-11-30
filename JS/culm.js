@@ -15,10 +15,11 @@ const pool = new Pool({
 
 const puppeteer = require('puppeteer');
 
-const download = '~/MtGScraper/downloads';
+const root = 'C:\\Users\\SentientScythe\\MtGScraper\\';
+const download = root + 'downloads';
+const temp_file = root + 'current.mwDeck';
 
 let insert_true_stats = async() => {
-	const download_folder = 'C:\\Users\\SentientScythe\\MtGScraper\\downloads';
 	const select_decks = 'SELECT deck_url FROM mtg.tournament_decks WHERE cards IS NULL ORDER BY deck_url';
 	const client = await pool.connect();
 	const deck_urls = await client.query(select_decks);
@@ -30,7 +31,7 @@ let insert_true_stats = async() => {
 	var page = await browser.newPage();
 	await page._client.send('Page.setDownloadBehavior', {
 		behavior: 'allow',
-		downloadPath: download_folder
+		downloadPath: download
 	});
 
 	for (const deck_url of deck_urls.rows) {
@@ -59,18 +60,21 @@ let insert_true_stats = async() => {
 	process.exit();
 }
 
+const second_button = 'body > div.page > div > table > tbody > tr > td:nth-child(2) > table:nth-child(2) > tbody > tr > td:nth-child(2) > div > a:nth-child(2)';
+const third_button = 'body > div.page > div > table > tbody > tr > td:nth-child(2) > table:nth-child(2) > tbody > tr > td:nth-child(2) > div > a:nth-child(3)';
+
 let download_mwdeck = async(page, deck_url) => {
 	do {
 		var success = true;
 
 		try {
 			await page.goto(deck_url);
-			await page.waitForSelector('body > div.page > div > table > tbody > tr > td:nth-child(2) > table:nth-child(2) > tbody > tr > td:nth-child(2) > div > a:nth-child(2)');
+			await page.waitForSelector(second_button);
 
 			try {
-				await page.click('body > div.page > div > table > tbody > tr > td:nth-child(2) > table:nth-child(2) > tbody > tr > td:nth-child(2) > div > a:nth-child(3)');
+				await page.click(third_button);
 			} catch (e) {
-				await page.click('body > div.page > div > table > tbody > tr > td:nth-child(2) > table:nth-child(2) > tbody > tr > td:nth-child(2) > div > a:nth-child(2)');
+				await page.click(second_button);
 			}
 
 			var fileList = [];
@@ -96,30 +100,28 @@ let download_mwdeck = async(page, deck_url) => {
 	} while (success == false);
 }
 
-let parse_mwdeck = async(deck_url) => {
-	const temp_file = download + '/current.mwDeck';
+const copy_into_temp = "DROP TABLE IF EXISTS mwdeck_import; CREATE TEMP TABLE IF NOT EXISTS mwdeck_import(line text); COPY mwdeck_import FROM 'C:\\Users\\SentientScythe\\MtGScraper\\current.mwDeck'";
+const update_td_cards = 'UPDATE mtg.tournament_decks SET cards = ARRAY(TABLE mwdeck_import OFFSET 4) WHERE deck_url = $1';
 
+let parse_mwdeck = async(deck_url) => {
 	try {
 		await fs.unlinkSync(temp_file);
 	} catch (e) {}
 
 	const fileList = await fs.readdirSync(download);
 	const filename = fileList[0];
-	const original_filepath = download + '/' + filename.replace(/\s/g, '_');
+	const original_filepath = download + '\\' + filename.replace(/\s/g, '_');
 	await fs.writeFileSync(temp_file, fs.readFileSync(original_filepath, 'utf8'), {
 		encoding: 'utf8',
 		flag: 'w'
 	});
 
 	const client = await pool.connect();
-
-	const copy_into_temp = "DROP TABLE IF EXISTS mwdeck_import; CREATE TEMP TABLE IF NOT EXISTS mwdeck_import(line text); COPY mwdeck_import FROM 'C:\\Users\\SentientScythe\\MtGScraper\\current.mwDeck'";
 	await client.query(copy_into_temp);
-	await fs.unlinkSync(temp_file);
-	const update_td_cards = 'UPDATE mtg.tournament_decks SET cards = ARRAY(TABLE mwdeck_import OFFSET 4) WHERE deck_url = $1';
 	await client.query(update_td_cards, [deck_url]);
-
 	await client.release();
+	
+	await fs.unlinkSync(temp_file);
 }
 
 insert_true_stats();
