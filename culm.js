@@ -75,12 +75,16 @@ let download_mwdeck = async(page, deck_url) => {
 
 			var fileList = [];
 			var filename = '';
+			var retry = 0;
 
-			while (fileList.length == 0 || filename.includes('.crdownload')) {
+			while ((fileList.length == 0 || filename.includes('.crdownload')) && retry < 64) {
 				try {
 					fileList = await fs.readdirSync(download);
 					filename = fileList[0];
 				} catch (e) {}
+				finally {
+					retry++;
+				}
 			}
 
 			if (!filename.includes('.mwDeck')) {
