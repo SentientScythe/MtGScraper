@@ -18,7 +18,7 @@ const puppeteer = require('puppeteer');
 const download = './downloads';
 
 let insert_true_stats = async() => {
-	const download_folder = 'C:\\Users\\SentientScythe\\MtGTop8Scraper\\downloads';
+	const download_folder = 'C:\\Users\\SentientScythe\\MtGScraper\\downloads';
 	const select_decks = 'SELECT deck_url FROM mtg.tournament_decks WHERE cards IS NULL ORDER BY deck_url';
 	const client = await pool.connect();
 	const deck_urls = await client.query(select_decks);
@@ -113,7 +113,7 @@ let parse_mwdeck = async(deck_url) => {
 
 	const client = await pool.connect();
 
-	const copy_into_temp = "DROP TABLE IF EXISTS mwdeck_import; CREATE TEMP TABLE IF NOT EXISTS mwdeck_import(line text); COPY mwdeck_import FROM 'C:\\Users\\SentientScythe\\MtGTop8Scraper\\current.mwDeck'";
+	const copy_into_temp = "DROP TABLE IF EXISTS mwdeck_import; CREATE TEMP TABLE IF NOT EXISTS mwdeck_import(line text); COPY mwdeck_import FROM 'C:\\Users\\SentientScythe\\MtGScraper\\current.mwDeck'";
 	await client.query(copy_into_temp);
 	await fs.unlinkSync(temp_file);
 	const update_td_cards = 'UPDATE mtg.tournament_decks SET cards = ARRAY(TABLE mwdeck_import OFFSET 4) WHERE deck_url = $1';
