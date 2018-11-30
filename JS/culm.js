@@ -15,7 +15,7 @@ const pool = new Pool({
 
 const puppeteer = require('puppeteer');
 
-const download = './downloads';
+const download = '~/MtGScraper/downloads';
 
 let insert_true_stats = async() => {
 	const download_folder = 'C:\\Users\\SentientScythe\\MtGScraper\\downloads';
@@ -97,7 +97,7 @@ let download_mwdeck = async(page, deck_url) => {
 }
 
 let parse_mwdeck = async(deck_url) => {
-	const temp_file = './current.mwDeck';
+	const temp_file = download + '/current.mwDeck';
 
 	try {
 		await fs.unlinkSync(temp_file);
