@@ -1,3 +1,12 @@
+const Promise = require('bluebird');
+const {
+	Client
+} = require('pg');
+const client = new Client({
+		user: 'postgres',
+		database: 'mtg'
+	});
+
 let calc_deck_stats = async() => {
 	await client.connect();
 
