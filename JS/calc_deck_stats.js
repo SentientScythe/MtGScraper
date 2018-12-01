@@ -1,88 +1,3 @@
-const Promise = require('bluebird');
-const fs = require('fs');
-const puppeteer = require('puppeteer');
-const {
-	Client
-} = require('pg');
-const client = new Client({
-		user: 'postgres',
-		database: 'mtg'
-	});
-// const {
-// Pool
-// } = require('pg');
-// const pool = new Pool({
-// user: 'postgres',
-// database: 'mtg'
-// });
-
-Promise.longStackTraces();
-
-let insert_card_lists = async() => {
-	await client.connect();
-	const fileList = await fs.readdirSync('./done');
-	const temp_filepath = './done/current.mwDeck';
-	const temp_table_sql = 'CREATE TEMP TABLE mwdeck_import(line text)';
-	await client.query(temp_table_sql);
-	const staging_sql = 'TRUNCATE TABLE mwdeck_import; COPY mwdeck_import FROM \'C:\\Users\\SentientScythe\\MtGScraper\\done\\current.mwDeck\'; SELECT * FROM(SELECT REPLACE((TABLE mwdeck_import LIMIT 1 OFFSET 1)::text, \'// NAME : \', \'\') AS name, REPLACE((TABLE mwdeck_import LIMIT 1 OFFSET 2)::text, \'// CREATOR : \', \'\') player, REPLACE((TABLE mwdeck_import LIMIT 1 OFFSET 3)::text, \'// FORMAT : \', \'\') format, ARRAY(TABLE mwdeck_import OFFSET 4) cards) AS mwdeck;';
-	const insert_sql = 'INSERT INTO mtg.mwdecks(filename, name, creator, format, cards) VALUES($1, $2, $3, $4, $5)';
-
-	for (const file of fileList) {
-		const original_filepath = './done/' + file;
-		await fs.copyFile(original_filepath, temp_filepath, function () {});
-
-		try {
-			const res = await client.query(staging_sql);
-			const values = [file, res[2].rows[0]["name"], res[2].rows[0]["player"], res[2].rows[0]["format"], res[2].rows[0]["cards"]];
-			await client.query(insert_sql, values);
-		} catch (e) {
-			await console.log(e.stack);
-		}
-	}
-
-	await client.end();
-	exit;
-}
-
-let insert_mwdeck_names = async() => {
-	const browser = await puppeteer.launch({
-			headless: false
-		});
-	var page = await browser.newPage();
-
-	await client.connect();
-	const fileList = await fs.readdirSync('./done');
-	const select_sql = 'SELECT deck_url FROM mtg.tournament_decks';
-	const update_sql = 'UPDATE mtg.tournament_decks SET mwdeck_name = $1 WHERE deck_url = $2';
-	const regex = /https:\/\/mtgtop8.com\/dec\?d=.*?&f=(.*)/;
-	const res = await client.query(select_sql);
-
-	for (const row of res.rows) {
-		var groups = null;
-
-		do {
-			try {
-				await page.goto(row['deck_url']);
-				await page.waitForSelector('body > div.page > div > table > tbody > tr > td:nth-child(2) > table:nth-child(2) > tbody > tr > td:nth-child(2) > div > a:nth-child(2)');
-				result = await page.evaluate(function () {
-						const button = document.querySelector('body > div.page > div > table > tbody > tr > td:nth-child(2) > table:nth-child(2) > tbody > tr > td:nth-child(2) > div > a:nth-child(2)');
-						return button.href;
-					});
-				groups = await regex.exec(result);
-			} catch (e) {
-				await page.close();
-				page = await browser.newPage();
-			}
-		} while (groups == null);
-
-		const filename = groups[1] + '.mwDeck';
-		await client.query(update_sql, [filename, row['deck_url']]);
-	}
-
-	await client.end();
-	exit;
-}
-
 let calc_deck_stats = async() => {
 	await client.connect();
 
@@ -449,9 +364,5 @@ function mapToJson(map) {
 function jsonToMap(jsonStr) {
 	return new Map(JSON.parse(jsonStr));
 }
-
-//insert_card_lists();
-
-//insert_mwdeck_names();
 
 calc_deck_stats();
