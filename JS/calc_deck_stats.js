@@ -10,7 +10,7 @@ const client = new Client({
 let calc_deck_stats = async() => {
 	await client.connect();
 
-	const select_decks = "SELECT deck_url FROM mtg.tournament_decks WHERE cards <> '{}' AND cards <> NULL AND unknown_cards_main <> TRUE";
+	const select_decks = "SELECT deck_url FROM mtg.tournament_decks WHERE cards <> '{}' AND cards IS NOT NULL AND unknown_cards_main = FALSE";
 	const decks = await client.query(select_decks);
 
 	const select_cards = 'SELECT UNNEST(cards) FROM mtg.tournament_decks WHERE deck_url = $1';
