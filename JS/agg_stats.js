@@ -38,15 +38,16 @@ const pool = new Pool({
 
 // for each category: find all possibilities and make them columns, then fill each table
 let agg_stats = async() => {
-	await do_the_work('layouts.csv', select_layouts);
-	await do_the_work('mana_costs.csv', select_mana_costs);
-	await do_the_work('cmcs.csv', select_cmcs);
-	await do_the_work('colors.csv', select_colors);
-	await do_the_work('supertypes.csv', select_supertypes);
-	await do_the_work('types.csv', select_types);
-	await do_the_work('subtypes.csv', select_subtypes);
-	await do_the_work('powers.csv', select_powers);
-	await do_the_work('toughnesses.csv', select_toughnesses);
+	const path = 'StatCSVs/'; 
+	await do_the_work(path + 'layouts.csv', select_layouts);
+	await do_the_work(path + 'mana_costs.csv', select_mana_costs);
+	await do_the_work(path + 'cmcs.csv', select_cmcs);
+	await do_the_work(path + 'colors.csv', select_colors);
+	await do_the_work(path + 'supertypes.csv', select_supertypes);
+	await do_the_work(path + 'types.csv', select_types);
+	await do_the_work(path + 'subtypes.csv', select_subtypes);
+	await do_the_work(path + 'powers.csv', select_powers);
+	await do_the_work(path + 'toughnesses.csv', select_toughnesses);
 }
 
 let do_the_work = async(filename, query) => {
