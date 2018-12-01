@@ -86,13 +86,15 @@ let insert_mwdeck_names = async() => {
 let calc_deck_stats = async() => {
 	await client.connect();
 
-	const select_decks = "SELECT deck_url FROM mtg.tournament_decks WHERE cards <> '{}'";
+	const select_decks = "SELECT deck_url FROM mtg.tournament_decks WHERE cards <> '{}' AND cards <> NULL AND unknown_cards_main <> TRUE";
 	const decks = await client.query(select_decks);
 
 	const select_cards = 'SELECT UNNEST(cards) FROM mtg.tournament_decks WHERE deck_url = $1';
 	const card_regex = /(SB:\s+){0,1}(\d*)\s*(\[\w*\]){0,1}\s*(.+)/;
 	const select_card_data = 'SELECT * FROM mtg.cards WHERE name = $1';
+	const truncate_deck_stats = 'TRUNCATE TABLE mtg.deck_stats';
 	const insert_deck_stats = 'INSERT INTO mtg.deck_stats (deck_url, main, sideboard, layouts, mana_costs, cmcs, colors, supertypes, types, subtypes, powers, toughnesses) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)';
+	await client.query(truncate_deck_stats);
 
 	for (const deck of decks.rows) {
 		const deck_url = deck.deck_url;
