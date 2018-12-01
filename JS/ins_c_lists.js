@@ -86,7 +86,7 @@ let insert_mwdeck_names = async() => {
 let calc_deck_stats = async() => {
 	await client.connect();
 
-	const select_decks = 'SELECT deck_url FROM mtg.tournament_decks WHERE cards <> ARRAY[]::text[]';
+	const select_decks = "SELECT deck_url FROM mtg.tournament_decks WHERE cards <> '{}'";
 	const decks = await client.query(select_decks);
 
 	const select_cards = 'SELECT UNNEST(cards) FROM mtg.tournament_decks WHERE deck_url = $1';
