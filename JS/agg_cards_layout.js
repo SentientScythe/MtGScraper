@@ -10,34 +10,38 @@ const pool = new Pool({
 		database: 'mtg'
 	});
 
-// open connection
-const client = await pool.connect();
+let agg_cards = async() => {
+	// open connection
+	const client = await pool.connect();
 
-// truncate 6 columns in cards
-const wipe_columns = '';
-await client.query(wipe_columns);
+	// truncate 6 columns in cards
+	const wipe_columns = '';
+	await client.query(wipe_columns);
 
-// get list of decks
-const select_decks = 'SELECT cards, format, rank FROM mtg.tournament_decks WHERE unknown_cards_main = FALSE';
-const deck_urls = await client.query(select_decks);
+	// get list of decks
+	const select_decks = 'SELECT cards, format, rank FROM mtg.tournament_decks WHERE unknown_cards_main = FALSE';
+	const deck_urls = await client.query(select_decks);
 
-// close connection
-await client.release();
+	// close connection
+	await client.release();
 
-// for each deck of decks
+	// for each deck of decks
 	// open connection
 	// fetch deck.cards
 	// close connection
 
 	// for each card of deck.cards
-		// open connection
-		// accumulate number
-		
-		// if deck ranks 1
-			// accumulate rank 1 number
+	// open connection
+	// accumulate number
 
-		// case deck.format: legacy, vintage, modern, standard
-			// accumulate format numbers
+	// if deck ranks 1
+	// accumulate rank 1 number
 
-		// close connection
-// exit
+	// case deck.format: legacy, vintage, modern, standard
+	// accumulate format numbers
+
+	// close connection
+	// exit
+}
+
+agg_cards();
