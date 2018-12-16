@@ -32,11 +32,10 @@ let agg_cards = async() => {
 			const sideboard = groups[1];
 			const number_of_cards = Number(groups[2]);
 			const card_name = groups[4];
-			const split_card = await card_name.includes('/');
-			const card_names = split_card ? card_name.split(' / ') : null;
+			const card_names = card_name.includes('/') ? card_name.split(' / ') : null;
 
 			const client = await pool.connect();
-			if (split_card) {
+			if (card_names) {
 				await client.query(count_all, [number_of_cards, card_names[0]]);
 				await client.query(count_all, [number_of_cards, card_names[1]]);
 
