@@ -15,7 +15,7 @@ let agg_cards = async() => {
 	const wipe_columns = 'UPDATE mtg.card_stats SET count_all = 0, count_1 = 0, count_legacy = 0, count_modern = 0, count_standard = 0, count_vintage = 0';
 	await client.query(wipe_columns);
 
-	const select_decks = "SELECT cards, format, rank FROM mtg.tournament_decks WHERE date > '30-09-2010' AND format IN ('Legacy', 'Modern', 'Standard', 'Vintage') AND main = 60 AND unknown_cards_main = FALSE";
+	const select_decks = "SELECT cards, format, rank FROM mtg.tournament_decks tds LEFT JOIN mtg.deck_stats ds ON tds.deck_url = ds.deck_url WHERE date > '30-09-2010' AND format IN ('Legacy', 'Modern', 'Standard', 'Vintage') AND main = 60 AND unknown_cards_main = FALSE";
 	const select_decks_response = await client.query(select_decks);
 
 	await client.release();
