@@ -49,7 +49,6 @@ let calc_deck_stats = async() => {
 
 			if (split_card) {
 				const card_names = card_name.split(' / ');
-				var merged_card_data = {};
 				card_data = await client.query(select_card_data, [card_names[0]]);
 				split_card_data = await client.query(select_card_data, [card_names[1]]);
 			} else {

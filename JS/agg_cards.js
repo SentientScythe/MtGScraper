@@ -31,18 +31,11 @@ let agg_cards = async() => {
 			const sideboard = groups[1];
 			const number_of_cards = Number(groups[2]);
 			var card_name = groups[4];
-			var card_data;
-			var split_card_data;
 			var split_card = card_name.includes('/');
 
 			// accumulate number
 			if (split_card) {
 				const card_names = card_name.split(' / ');
-				var merged_card_data = {};
-				card_data = await client.query(select_card_data, [card_names[0]]);
-				split_card_data = await client.query(select_card_data, [card_names[1]]);
-			} else {
-				card_data = await client.query(select_card_data, [card_name]);
 			}
 
 			if (!card_data.rows[0]) {
