@@ -1,4 +1,3 @@
-// setup
 const Promise = require('bluebird');
 Promise.longStackTraces();
 
@@ -11,37 +10,33 @@ const pool = new Pool({
 	});
 
 let agg_cards = async() => {
-	// open connection
 	const client = await pool.connect();
 
-	// truncate 6 columns in cards
-	const wipe_columns = '';
+	const wipe_columns = 'UPDATE mtg.cards SET count_all = NULL, count_1 = NULL, count_legacy = NULL, count_vintage = NULL, count_modern = NULL, count_standard = NULL';
 	await client.query(wipe_columns);
 
-	// get list of decks
 	const select_decks = 'SELECT cards, format, rank FROM mtg.tournament_decks WHERE unknown_cards_main = FALSE';
-	const deck_urls = await client.query(select_decks);
+	const select_decks_response = await client.query(select_decks);
 
-	// close connection
 	await client.release();
 
-	// for each deck of decks
-	// open connection
-	// fetch deck.cards
-	// close connection
+	for (deck of select_decks_response.rows) {
+		for (card of deck.cards) {
+			const client = await pool.connect();
 
-	// for each card of deck.cards
-	// open connection
-	// accumulate number
+			// accumulate number
 
-	// if deck ranks 1
-	// accumulate rank 1 number
+			// if deck ranks 1
+				// accumulate rank 1 number
 
-	// case deck.format: legacy, vintage, modern, standard
-	// accumulate format numbers
+			// case deck.format: legacy, vintage, modern, standard
+				// accumulate format numbers
 
-	// close connection
-	// exit
+			await client.release();
+		}
+	}
+
+	process.exit();
 }
 
 agg_cards();
