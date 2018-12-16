@@ -14,7 +14,7 @@ let calc_deck_stats = async() => {
 	const decks = await client.query(select_decks);
 
 	const select_cards = 'SELECT UNNEST(cards) FROM mtg.tournament_decks WHERE deck_url = $1';
-	const card_regex = /(SB:\s+){0,1}(\d*)\s*(\[\w*\]){0,1}\s*(.+)/;
+	const card_regex = /(SB:\s+)?(\d*)\s*(\[\w*\])?\s*(.+)/;
 	const select_card_data = 'SELECT * FROM mtg.cards WHERE name = $1';
 	const truncate_deck_stats = 'TRUNCATE TABLE mtg.deck_stats';
 	const insert_deck_stats = 'INSERT INTO mtg.deck_stats (deck_url, main, sideboard, layouts, mana_costs, cmcs, colors, supertypes, types, subtypes, powers, toughnesses) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)';
