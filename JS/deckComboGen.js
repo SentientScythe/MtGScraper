@@ -168,10 +168,10 @@ function combosFromParameters(parameters, minAm, maxAm, minLaAm, maxLaAm) {
 									runningTotal += land;
 									nextPosition += 1;
 
-									var all = upToEight + land;
+									var all = upToSix + land;
 
 									if (runningTotal == 60) {
-										if (withinBounds(zero, one, two, three, four, five, six, seven, eight, land)) {
+										if (withinBounds(zero, one, two, three, four, five, six, land)) {
 											logger.info(all);
 										}
 									}
@@ -235,4 +235,4 @@ function withinBounds(zeroes, ones, twos, threes, fours, fives, sixes, lands) {
 	return amc >= minAverageMana && amc <= maxAverageMana && laToAmc >= minLandsToAverageMana && laToAmc <= maxLandsToAverageMana;
 }
 
-combosFromParameters([[0, 1, 2, 3, 4], [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20], [7, 8, 9, 10, 11, 12, 13, 14, 15], [3, 4, 5, 6, 7, 8, 9, 10], [1, 2, 3, 4, 5, 6], [0, 1, 2, 3, 4], [0, 1, 2], [18, 19, 20, 21, 22, 23, 24]], 1.698769484, 2.976193292, 6.636021652, 12.53690457);
+combosFromParameters([[0, 1, 2], [7, 8, 9, 10, 11, 12, 13, 14, 15, 16], [8, 9, 10, 11, 12, 13], [4, 5, 6, 7, 8, 9], [1, 2, 3, 4, 5, 6], [0, 1, 2, 3, 4], [0, 1], [19, 20, 21, 22, 23, 24]], 1.97436, 2.75, 8.18269, 10.8);
