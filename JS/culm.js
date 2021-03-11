@@ -69,10 +69,13 @@ let insert_true_stats = async () => {
 	process.exit();
 };
 
-const second_button =
-	'body > div.page > div > table > tbody > tr > td:nth-child(2) > table:nth-child(2) > tbody > tr > td:nth-child(2) > div > a:nth-child(3)';
-const third_button =
-	'body > div.page > div > table > tbody > tr > td:nth-child(2) > table:nth-child(2) > tbody > tr > td:nth-child(2) > div > a:nth-child(4)';
+const baseSelector = 'body > div.page > div > table > tbody > tr > td:nth-child(2) > ';
+const secondChild = 'table:nth-child(2) > tbody > tr > td:nth-child(2) > div > a:nth-child(';
+const thirdChild = 'table:nth-child(3) > tbody > tr > td:nth-child(2) > div > a:nth-child(';
+const secondButton = baseSelector + secondChild + '3)';
+const thirdButton = baseSelector + secondChild + '4)';
+const secondButtonP = baseSelector + thirdChild + '3)';
+const thirdButtonP = baseSelector + thirdChild + '4)';
 
 let download_mwdeck = async (page, deck_url) => {
 	var success = true;
@@ -82,12 +85,23 @@ let download_mwdeck = async (page, deck_url) => {
 
 		try {
 			await page.goto(deck_url);
-			await page.waitForSelector(second_button);
+			await page.waitForSelector(secondButton);
+			const extraTable = await file_page.evaluate(() => {
+				return Boolean(document.querySelector('div.R12'));
+			});
 
-			try {
-				await page.click(third_button);
-			} catch (e) {
-				await page.click(second_button);
+			if (extraTable) {
+				try {
+					await page.click(thirdButtonP);
+				} catch (e) {
+					await page.click(secondButtonP);
+				}
+			} else {
+				try {
+					await page.click(thirdButton);
+				} catch (e) {
+					await page.click(secondButton);
+				}
 			}
 
 			var fileList = [];
