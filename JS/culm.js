@@ -46,6 +46,8 @@ let insert_true_stats = async () => {
 		var success = true;
 
 		do {
+			success = true;
+
 			try {
 				rimraf.sync(download_folder);
 			} catch (e) {}
@@ -76,6 +78,8 @@ let download_mwdeck = async (page, deck_url) => {
 	var success = true;
 
 	do {
+		success = true;
+
 		try {
 			await page.goto(deck_url);
 			await page.waitForSelector(second_button);
