@@ -9,7 +9,7 @@ log4js.configure({
 	appenders: {
 		out: {
 			type: 'file',
-			filename: 'deck_url.csv',
+			filename: 'deck_url.tsv',
 			layout: {
 				type: 'messagePassThrough'
 			}
@@ -51,6 +51,7 @@ let scrape = async () => {
 	});
 	const dms = await decks_matching.split(' ');
 	const last_page = Math.ceil(dms[0] / 25);
+	logger.info('deck_url\tdeck_name\tplayer\tevent_url\tevent_name\trank\tdate\r\n');
 
 	for (i = 1; i <= last_page; i++) {
 		var success = true;
