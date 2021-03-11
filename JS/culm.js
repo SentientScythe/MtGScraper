@@ -86,7 +86,7 @@ let download_mwdeck = async (page, deck_url) => {
 		try {
 			await page.goto(deck_url);
 			await page.waitForSelector(baseSelector);
-			const extraTable = await file_page.evaluate(() => {
+			const extraTable = await page.evaluate(() => {
 				return Boolean(document.querySelector('div.R12'));
 			});
 
