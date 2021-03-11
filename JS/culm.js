@@ -69,9 +69,9 @@ let insert_true_stats = async () => {
 	process.exit();
 };
 
-const baseSelector = 'body > div.page > div > table > tbody > tr > td:nth-child(2) > ';
-const secondChild = 'table:nth-child(2) > tbody > tr > td:nth-child(2) > div > a:nth-child(';
-const thirdChild = 'table:nth-child(3) > tbody > tr > td:nth-child(2) > div > a:nth-child(';
+const baseSelector = 'body > div.page > div > table > tbody > tr > td:nth-child(2)';
+const secondChild = ' > table:nth-child(2) > tbody > tr > td:nth-child(2) > div > a:nth-child(';
+const thirdChild = ' > table:nth-child(3) > tbody > tr > td:nth-child(2) > div > a:nth-child(';
 const secondButton = baseSelector + secondChild + '3)';
 const thirdButton = baseSelector + secondChild + '4)';
 const secondButtonP = baseSelector + thirdChild + '3)';
@@ -85,7 +85,7 @@ let download_mwdeck = async (page, deck_url) => {
 
 		try {
 			await page.goto(deck_url);
-			await page.waitForSelector(secondButton);
+			await page.waitForSelector(baseSelector);
 			const extraTable = await file_page.evaluate(() => {
 				return Boolean(document.querySelector('div.R12'));
 			});
