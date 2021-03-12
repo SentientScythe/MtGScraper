@@ -15,6 +15,8 @@ const cardClient = new Client({
 });
 // Invoke SQL
 
+const ProgressBar = require('progress');
+
 const commonStats = ['colors', 'converted_mana_cost', 'mana_cost', 'power', 'subtypes', 'supertypes', 'toughness', 'types'];
 const selectCardData = 'SELECT * FROM mtg2.cards WHERE name = $1';
 
@@ -41,9 +43,13 @@ let calcDeckStats = async () => {
 	const decks = await client.query(
 		"SELECT deck_url FROM mtg.tournament_decks WHERE cards <> '{}' AND cards IS NOT NULL AND unknown_cards_main = FALSE"
 	);
+	const rows = decks.rows;
 	await client.query('TRUNCATE TABLE mtg.deck_stats');
+	const bar = new ProgressBar('Progress [:bar] :current/:total :percent :etas', {
+		total: rows.length
+	});
 
-	for (const deck of decks.rows) {
+	for (const deck of rows) {
 		const deckUrl = deck.deck_url;
 		const cardsResponse = await client.query('SELECT UNNEST(cards) FROM mtg.tournament_decks WHERE deck_url = $1', [
 			deckUrl
@@ -106,6 +112,7 @@ let calcDeckStats = async () => {
 			'INSERT INTO mtg.deck_stats (deck_url, main, sideboard, layouts, colors, cmcs, mana_costs, powers, subtypes, supertypes, toughnesses, types) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)',
 			finalData
 		);
+		bar.tick();
 	}
 
 	await client.end();
