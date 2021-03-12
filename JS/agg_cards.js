@@ -20,7 +20,7 @@ const update1 = updateCount.replace(sReplace, '1');
 let aggregateCardStats = async () => {
 	const client = await pool.connect();
 	await client.query(
-		'UPDATE mtg.card_stats SET count_all = 0, count_1 = 0, count_legacy = 0, count_modern = 0, count_standard = 0, count_vintage = 0'
+		'UPDATE mtg.card_stats SET count_all = 0, count_1 = 0, count_legacy = 0, count_modern = 0, count_standard = 0, count_vintage = 0, count_block = 0, count_canadian_highlander = 0, count_edh_online = 0, count_edh_peasant = 0, count_elder_dragon_highlander = 0, count_extended = 0, count_highlander = 0, count_historic = 0, count_limited = 0, count_pauper = 0, count_peasant = 0, count_pioneer = 0'
 	);
 	const decks = await client.query(
 		"SELECT cards, format, rank FROM mtg.tournament_decks tds LEFT JOIN mtg.deck_stats ds ON tds.deck_url = ds.deck_url WHERE date > '30-09-2010' AND unknown_cards_main = FALSE"
