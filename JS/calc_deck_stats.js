@@ -18,11 +18,11 @@ const cardClient = new Client({
 const commonStats = ['colors', 'converted_mana_cost', 'mana_cost', 'power', 'subtypes', 'supertypes', 'toughness', 'types'];
 const selectCardData = 'SELECT * FROM mtg2.cards WHERE name = $1';
 
-let incrementDeck = async (numberOfCards, stat, stats) => {
+function incrementDeck(numberOfCards, stat, stats) {
 	stats.set(stat, stats.get(stat) + numberOfCards);
-};
+}
 
-let insertStatValue = async (cardData, numberOfCards, splitCard, splitCardData, stat, stats) => {
+function insertStatValue(cardData, numberOfCards, splitCard, splitCardData, stat, stats) {
 	const cardStat = cardData.rows[0][stat];
 	const statMap = stats.get(stat);
 	var currentStat = statMap.get(cardStat);
@@ -33,7 +33,7 @@ let insertStatValue = async (cardData, numberOfCards, splitCard, splitCardData, 
 		currentStat = statMap.get(splitCardStat);
 		statMap.set(splitCardStat, !currentStat ? numberOfCards : currentStat + numberOfCards);
 	}
-};
+}
 
 let calcDeckStats = async () => {
 	await client.connect();
@@ -85,10 +85,10 @@ let calcDeckStats = async () => {
 			if (!groups[1]) {
 				// Main
 				incrementDeck(numberOfCards, 'main', stats);
-				await insertStatValue(cardData, numberOfCards, false, splitCardData, 'layout', stats);
+				insertStatValue(cardData, numberOfCards, false, splitCardData, 'layout', stats);
 
 				for (const stat of commonStats) {
-					await insertStatValue(cardData, numberOfCards, splitCard, splitCardData, stat, stats);
+					insertStatValue(cardData, numberOfCards, splitCard, splitCardData, stat, stats);
 				}
 			} else {
 				// Sideboard
