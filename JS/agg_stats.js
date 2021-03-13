@@ -21,7 +21,7 @@ let aggregateStats = async () => {
 	for (const stat of stats) {
 		await doTheWork(
 			stat + '.tsv',
-			'SELECT tds.deck_url, %s stats FROM mtg.tournament_decks tds LEFT JOIN mtg.deck_stats ds ON tds.deck_url = ds.deck_url WHERE main = 60 AND unknown_cards_main = FALSE'.replace(
+			'SELECT tds.deck_url, %s stats FROM mtg.tournament_decks tds LEFT JOIN mtg.deck_stats ds ON tds.deck_url = ds.deck_url WHERE unknown_cards_main = FALSE'.replace(
 				/%s/g,
 				stat
 			)
