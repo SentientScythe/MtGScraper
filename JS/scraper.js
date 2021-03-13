@@ -3,37 +3,28 @@
 const Promise = require('bluebird');
 // Promise.longStackTraces(); DEBUG ONLY
 
-// Invoke log4js
-const log4js = require('log4js');
-log4js.configure({
-	appenders: {
-		out: {
-			type: 'file',
-			filename: 'deck_url.tsv',
-			layout: {
-				type: 'messagePassThrough'
-			}
-		}
-	},
-	categories: {
-		default: {
-			appenders: ['out'],
-			level: 'info'
-		}
-	}
-});
-// Invoke log4js
-
 // Invoke Puppeteer
 const puppeteer = require('puppeteer');
 const { PuppeteerBlocker } = require('@cliqz/adblocker-puppeteer');
 const fetch = require('cross-fetch');
 // Invoke Puppeteer
 
+// Invoke SQL
+const { Client } = require('pg');
+const client = new Client({
+	user: 'postgres',
+	database: 'mtg'
+});
+// Invoke SQL
+
 const ProgressBar = require('progress');
 
 let scrape = async () => {
-	const logger = log4js.getLogger('log');
+	// Invoke SQL
+	await client.connect();
+	// Invoke SQL
+
+	// Invoke Puppeteer
 	const browser = await puppeteer.launch({
 		headless: false
 	});
@@ -42,18 +33,21 @@ let scrape = async () => {
 	await PuppeteerBlocker.fromPrebuiltAdsAndTracking(fetch).then((blocker) => {
 		blocker.enableBlockingInPage(page);
 	});
+	// Invoke Puppeteer
+
 	await page.goto('https://mtgtop8.com/search');
-	const decks_matching = await page.evaluate(() => {
+	const decksMatchingHtml = await page.evaluate(() => {
 		const element = document.querySelector(
 			'body > div.page > div > table > tbody > tr > td:nth-child(2) > form > table > tbody > tr:nth-child(1) > td > div'
 		);
 		return element.innerText;
 	});
-	const dms = await decks_matching.split(' ');
-	const last_page = Math.ceil(dms[0] / 25);
-	logger.info('deck_url\tdeck_name\tplayer\tevent_url\tevent_name\trank\tdate\r\n');
+	const decksMatchingArray = await decksMatchingHtml.split(' ');
+	const decksMatching = decksMatchingArray[0];
+	const lastPage = Math.ceil(decksMatching / 25);
+	const bar = new ProgressBar('Progress [:bar] :current/:total :percent :etas', { total: decksMatching });
 
-	for (i = 1; i <= last_page; i++) {
+	for (i = 1; i <= lastPage; i++) {
 		var success = true;
 
 		do {
@@ -65,41 +59,29 @@ let scrape = async () => {
 		} while (success === false);
 
 		await page.waitForNavigation();
-		var result = null;
+		var result = [];
 
 		do {
 			success = true;
 
 			try {
 				result = await page.evaluate(() => {
-					const base_url = 'https://mtgtop8.com/';
-					var data = '';
+					const baseUrl = 'https://mtgtop8.com/';
+					const data = [];
 					const elements = document.querySelectorAll('tr.hover_tr');
 
-					for (var element of elements) {
-						let deck_url = base_url + element.children[1].children[0].getAttribute('href');
-						let deck_name = element.children[1].innerText;
-						let player = element.children[2].innerText;
-						let event_url = base_url + element.children[3].children[0].getAttribute('href');
-						let event_name = element.children[3].innerText;
-						let rank = element.children[5].innerText;
-						let date = element.children[6].innerText;
-
-						data +=
-							deck_url +
-							'\t' +
-							deck_name +
-							'\t' +
-							player +
-							'\t' +
-							event_url +
-							'\t' +
-							event_name +
-							'\t' +
-							rank +
-							'\t' +
-							date +
-							'\r\n';
+					for (const element of elements) {
+						const child2 = element.children[1];
+						const child4 = element.children[3];
+						data.push([
+							baseUrl + child2.children[0].getAttribute('href'),
+							child2.innerText,
+							element.children[2].innerText,
+							baseUrl + child4.children[0].getAttribute('href'),
+							child4.innerText,
+							element.children[5].innerText,
+							element.children[6].innerText
+						]);
 					}
 
 					return data;
@@ -109,7 +91,14 @@ let scrape = async () => {
 			}
 		} while (success === false);
 
-		logger.info(result);
+		for (const row in result) {
+			await client.query(
+				'INSERT INTO mtg.tournament_decks (deck_url, deck_name, player, event_url, event_name, rank, date) VALUES ($1, $2, $3, $4, $5, $6, $7) ON CONFLICT (deck_url) DO NOTHING;',
+				row
+			);
+		}
+
+		bar.doTick(result.length);
 	}
 };
 
