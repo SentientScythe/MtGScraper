@@ -18,14 +18,16 @@ const { PuppeteerBlocker } = require('@cliqz/adblocker-puppeteer');
 const fetch = require('cross-fetch');
 // Invoke Puppeteer
 
+const ProgressBar = require('progress');
+
 const root = 'C:\\Users\\SentientScythe\\MtGScraper\\';
 const download = root + 'downloads';
-const temp_file = root + 'current.mwDeck';
+const tempFile = root + 'current.mwDeck';
 
 let insert_true_stats = async () => {
-	const select_decks = "SELECT deck_url FROM mtg.tournament_decks WHERE cards IS NULL OR cards = '{}' ORDER BY deck_url";
+	const selectDecks = "SELECT deck_url FROM mtg.tournament_decks WHERE cards IS NULL OR cards = '{}' ORDER BY deck_url";
 	const client = await pool.connect();
-	const deck_urls = await client.query(select_decks);
+	const deckUrls = await client.query(selectDecks);
 	client.release();
 
 	// Invoke Puppeteer
@@ -42,7 +44,11 @@ let insert_true_stats = async () => {
 	});
 	// Invoke Puppeteer
 
-	for (const deck_url of deck_urls.rows) {
+	const bar = new ProgressBar('Progress [:bar] :current/:total :percent :etas', {
+		total: deckUrls.rows.length
+	});
+
+	for (const deckUrl of deckUrls.rows) {
 		var success = true;
 
 		do {
@@ -57,12 +63,14 @@ let insert_true_stats = async () => {
 			} catch (e) {}
 
 			try {
-				await download_mwdeck(page, deck_url.deck_url);
-				await parse_mwdeck(deck_url.deck_url);
+				await download_mwdeck(page, deckUrl.deck_url);
+				await parse_mwdeck(deckUrl.deck_url);
 			} catch (e) {
 				success = false;
 			}
 		} while (success == false);
+
+		bar.tick();
 	}
 
 	await browser.close();
@@ -127,24 +135,24 @@ let download_mwdeck = async (page, deck_url) => {
 	} while (success === false);
 };
 
-const copy_into_temp =
+const copyIntoTemp =
 	"DROP TABLE IF EXISTS mwdeck_import; CREATE TEMP TABLE IF NOT EXISTS mwdeck_import(line text); COPY mwdeck_import FROM 'C:\\Users\\SentientScythe\\MtGScraper\\current.mwDeck'";
-const update_td_cards = 'UPDATE mtg.tournament_decks SET cards = ARRAY(TABLE mwdeck_import OFFSET 4) WHERE deck_url = $1';
+const updateTDCards = 'UPDATE mtg.tournament_decks SET cards = ARRAY(TABLE mwdeck_import OFFSET 4) WHERE deck_url = $1';
 
 let parse_mwdeck = async (deck_url) => {
 	try {
-		fs.unlinkSync(temp_file);
+		fs.unlinkSync(tempFile);
 	} catch (e) {}
 
 	const fileList = fs.readdirSync(download);
 	const filename = fileList[0];
 	const original_filepath = download + '\\' + filename.replace(/\s/g, '_');
-	fs.writeFileSync(temp_file, fs.readFileSync(original_filepath, 'utf8'), { encoding: 'utf8', flag: 'w' });
+	fs.writeFileSync(tempFile, fs.readFileSync(original_filepath, 'utf8'), { encoding: 'utf8', flag: 'w' });
 	const client = await pool.connect();
-	await client.query(copy_into_temp);
-	await client.query(update_td_cards, [deck_url]);
+	await client.query(copyIntoTemp);
+	await client.query(updateTDCards, [deck_url]);
 	client.release();
-	fs.unlinkSync(temp_file);
+	fs.unlinkSync(tempFile);
 };
 
 insert_true_stats();
