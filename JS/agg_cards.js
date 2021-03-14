@@ -4,28 +4,39 @@ const Promise = require('bluebird');
 // Promise.longStackTraces(); DEBUG ONLY
 
 // Invoke SQL
-const { Pool } = require('pg');
-const pool = new Pool({
+const { Client } = require('pg');
+const cardClient = new Client({
+	user: 'postgres',
+	database: 'mtg2'
+});
+const deckClient = new Client({
 	user: 'postgres',
 	database: 'mtg'
 });
 // Invoke SQL
 
+const ProgressBar = require('progress');
+
 const spaceReplace = / /g;
 const sReplace = /%s/g;
-const updateCount = 'UPDATE mtg.card_stats SET count_%s = count_%s + $1 WHERE name = $2';
+const updateCount = 'UPDATE mtg2.card_stats SET count_%s = count_%s + $1 WHERE name = $2';
 const updateAll = updateCount.replace(sReplace, 'all');
 const update1 = updateCount.replace(sReplace, '1');
 
 let aggregateCardStats = async () => {
-	const client = await pool.connect();
-	await client.query(
-		'UPDATE mtg.card_stats SET count_all = 0, count_1 = 0, count_legacy = 0, count_modern = 0, count_standard = 0, count_vintage = 0, count_block = 0, count_canadian_highlander = 0, count_edh_online = 0, count_edh_peasant = 0, count_elder_dragon_highlander = 0, count_extended = 0, count_highlander = 0, count_historic = 0, count_limited = 0, count_pauper = 0, count_peasant = 0, count_pioneer = 0'
+	await cardClient.connect();
+	await deckClient.connect();
+	await cardClient.query(
+		'UPDATE mtg2.card_stats SET count_all = 0, count_1 = 0, count_legacy = 0, count_modern = 0, count_standard = 0, count_vintage = 0, count_block = 0, count_canadian_highlander = 0, count_edh_online = 0, count_edh_peasant = 0, count_elder_dragon_highlander = 0, count_extended = 0, count_highlander = 0, count_historic = 0, count_limited = 0, count_pauper = 0, count_peasant = 0, count_pioneer = 0'
 	);
-	const decks = await client.query(
-		"SELECT cards, format, rank FROM mtg.tournament_decks tds LEFT JOIN mtg.deck_stats ds ON tds.deck_url = ds.deck_url WHERE date > '30-09-2010' AND unknown_cards_main = FALSE"
+	const decks = await deckClient.query(
+		"SELECT cards, format, rank FROM mtg.tournament_decks WHERE date > '30-09-2010' AND unknown_cards_main = FALSE"
 	);
-	client.release();
+	await deckClient.release();
+	const rows = decks.rows;
+	const bar = new ProgressBar('Progress [:bar] :current/:total :percent :etas', {
+		total: rows.length
+	});
 
 	for (const deck of decks.rows) {
 		const rankFirst = '1' === deck.rank;
@@ -37,36 +48,36 @@ let aggregateCardStats = async () => {
 			const numberOfCards = Number(groups[2]);
 			const cardName = groups[4];
 			const cardNames = cardName.includes('/') ? cardName.split(' / ') : null;
-			const client = await pool.connect();
 
 			if (cardNames) {
 				const cardData1 = [numberOfCards, cardNames[0]];
 				const cardData2 = [numberOfCards, cardNames[1]];
-				await client.query(updateAll, cardData1);
-				await client.query(updateAll, cardData2);
+				await cardClient.query(updateAll, cardData1);
+				await cardClient.query(updateAll, cardData2);
 
 				if (rankFirst) {
-					await client.query(update1, cardData1);
-					await client.query(update1, cardData2);
+					await cardClient.query(update1, cardData1);
+					await cardClient.query(update1, cardData2);
 				}
 
-				await client.query(updateFormat, cardData1);
-				await client.query(updateFormat, cardData2);
+				await cardClient.query(updateFormat, cardData1);
+				await cardClient.query(updateFormat, cardData2);
 			} else {
 				const cardData = [numberOfCards, cardName];
-				await client.query(updateAll, cardData);
+				await cardClient.query(updateAll, cardData);
 
 				if (rankFirst) {
-					await client.query(update1, cardData);
+					await cardClient.query(update1, cardData);
 				}
 
-				await client.query(updateFormat, cardData);
+				await cardClient.query(updateFormat, cardData);
 			}
-
-			client.release();
 		}
+
+		bar.tick();
 	}
 
+	await cardClient.release();
 	process.exit();
 };
 
