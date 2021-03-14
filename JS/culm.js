@@ -23,7 +23,7 @@ const download = root + 'downloads';
 const temp_file = root + 'current.mwDeck';
 
 let insert_true_stats = async () => {
-	const select_decks = 'SELECT deck_url FROM mtg.tournament_decks WHERE cards IS NULL ORDER BY deck_url';
+	const select_decks = "SELECT deck_url FROM mtg.tournament_decks WHERE cards IS NULL OR cards = '{}' ORDER BY deck_url";
 	const client = await pool.connect();
 	const deck_urls = await client.query(select_decks);
 	client.release();
