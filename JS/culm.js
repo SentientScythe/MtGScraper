@@ -55,11 +55,11 @@ let insert_true_stats = async () => {
 			success = true;
 
 			try {
-				rimraf.sync(download_folder);
+				rimraf.sync(download);
 			} catch (e) {}
 
 			try {
-				fs.mkdirSync(download_folder);
+				fs.mkdirSync(download);
 			} catch (e) {}
 
 			try {
