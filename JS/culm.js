@@ -63,8 +63,9 @@ let insert_true_stats = async () => {
 			} catch (e) {}
 
 			try {
-				await download_mwdeck(page, deckUrl.deck_url);
-				await parse_mwdeck(deckUrl.deck_url);
+				if (await download_mwdeck(page, deckUrl.deck_url)) {
+					await parse_mwdeck(deckUrl.deck_url);
+				}
 			} catch (e) {
 				success = false;
 			}
@@ -85,14 +86,26 @@ const thirdButton = baseSelector + secondChild + '4)';
 const secondButtonP = baseSelector + thirdChild + '3)';
 const thirdButtonP = baseSelector + thirdChild + '4)';
 
-let download_mwdeck = async (page, deck_url) => {
+let download_mwdeck = async (page, deckUrl) => {
 	var success = true;
 
 	do {
 		success = true;
 
 		try {
-			await page.goto(deck_url);
+			await page.goto(deckUrl);
+
+			// Confirm page exists
+			const notFound = await page.evaluate(() => {
+				return 'No event could be found.' === document.querySelector('div.page').innerText;
+			});
+
+			if (notFound) {
+				await client.query('DELETE FROM mtg.tournament_decks WHERE deck_url = $1', [deckUrl]);
+				success = false;
+				break;
+			}
+
 			await page.waitForSelector(baseSelector);
 			const extraTable = await page.evaluate(() => {
 				return Boolean(document.querySelector('div.R12'));
@@ -133,13 +146,15 @@ let download_mwdeck = async (page, deck_url) => {
 			success = false;
 		}
 	} while (success === false);
+
+	return success;
 };
 
 const copyIntoTemp =
 	"DROP TABLE IF EXISTS mwdeck_import; CREATE TEMP TABLE IF NOT EXISTS mwdeck_import(line text); COPY mwdeck_import FROM 'C:\\Users\\SentientScythe\\MtGScraper\\current.mwDeck'";
 const updateTDCards = 'UPDATE mtg.tournament_decks SET cards = ARRAY(TABLE mwdeck_import OFFSET 4) WHERE deck_url = $1';
 
-let parse_mwdeck = async (deck_url) => {
+let parse_mwdeck = async (deckUrl) => {
 	try {
 		fs.unlinkSync(tempFile);
 	} catch (e) {}
@@ -150,7 +165,7 @@ let parse_mwdeck = async (deck_url) => {
 	fs.writeFileSync(tempFile, fs.readFileSync(original_filepath, 'utf8'), { encoding: 'utf8', flag: 'w' });
 	const client = await pool.connect();
 	await client.query(copyIntoTemp);
-	await client.query(updateTDCards, [deck_url]);
+	await client.query(updateTDCards, [deckUrl]);
 	client.release();
 	fs.unlinkSync(tempFile);
 };
