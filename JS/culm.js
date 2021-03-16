@@ -7,10 +7,10 @@ const fs = require('fs');
 
 const rimraf = require('rimraf');
 
-// Invoke SQL
-const { Pool } = require('pg');
-const pool = new Pool({ user: 'postgres', database: 'mtg' });
-// Invoke SQL
+// Invoke PGSQL
+const { Client } = require('pg');
+const client = new Client({ user: 'postgres', database: 'mtg' });
+// Invoke PGSQL
 
 // Invoke Puppeteer
 const puppeteer = require('puppeteer');
@@ -24,11 +24,10 @@ const root = 'C:\\Users\\SentientScythe\\MtGScraper\\';
 const download = root + 'downloads';
 const tempFile = root + 'current.mwDeck';
 
-let insert_true_stats = async () => {
+let insertTrueStats = async () => {
 	const selectDecks = "SELECT deck_url FROM mtg.tournament_decks WHERE cards IS NULL OR cards = '{}' ORDER BY deck_url";
-	const client = await pool.connect();
+	await client.connect();
 	const deckUrls = await client.query(selectDecks);
-	client.release();
 
 	// Invoke Puppeteer
 	const browser = await puppeteer.launch({
@@ -63,8 +62,8 @@ let insert_true_stats = async () => {
 			} catch (e) {}
 
 			try {
-				if (await download_mwdeck(page, deckUrl.deck_url)) {
-					await parse_mwdeck(deckUrl.deck_url);
+				if (await downloadMwdeck(client, deckUrl.deck_url, page)) {
+					await parseMwdeck(client, deckUrl.deck_url);
 				}
 			} catch (e) {
 				success = false;
@@ -86,7 +85,7 @@ const thirdButton = baseSelector + secondChild + '4)';
 const secondButtonP = baseSelector + thirdChild + '3)';
 const thirdButtonP = baseSelector + thirdChild + '4)';
 
-let download_mwdeck = async (page, deckUrl) => {
+let downloadMwdeck = async (client, deckUrl, page) => {
 	var success = true;
 
 	do {
@@ -152,7 +151,7 @@ const copyIntoTemp =
 	"DROP TABLE IF EXISTS mwdeck_import; CREATE TEMP TABLE IF NOT EXISTS mwdeck_import(line text); COPY mwdeck_import FROM 'C:\\Users\\SentientScythe\\MtGScraper\\current.mwDeck'";
 const updateTDCards = 'UPDATE mtg.tournament_decks SET cards = ARRAY(TABLE mwdeck_import OFFSET 4) WHERE deck_url = $1';
 
-let parse_mwdeck = async (deckUrl) => {
+let parseMwdeck = async (client, deckUrl) => {
 	try {
 		fs.unlinkSync(tempFile);
 	} catch (e) {}
@@ -161,11 +160,9 @@ let parse_mwdeck = async (deckUrl) => {
 	const filename = fileList[0];
 	const original_filepath = download + '\\' + filename.replace(/\s/g, '_');
 	fs.writeFileSync(tempFile, fs.readFileSync(original_filepath, 'utf8'), { encoding: 'utf8', flag: 'w' });
-	const client = await pool.connect();
 	await client.query(copyIntoTemp);
 	await client.query(updateTDCards, [deckUrl]);
-	client.release();
 	fs.unlinkSync(tempFile);
 };
 
-insert_true_stats();
+insertTrueStats();
