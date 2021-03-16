@@ -158,8 +158,8 @@ let parseMwdeck = async (client, deckUrl) => {
 
 	const fileList = fs.readdirSync(download);
 	const filename = fileList[0];
-	const original_filepath = download + '\\' + filename.replace(/\s/g, '_');
-	fs.writeFileSync(tempFile, fs.readFileSync(original_filepath, 'utf8'), { encoding: 'utf8', flag: 'w' });
+	const originalFilepath = download + '\\' + filename.replace(/\s/g, '_');
+	fs.writeFileSync(tempFile, fs.readFileSync(originalFilepath, 'utf8'), { encoding: 'utf8', flag: 'w' });
 	await client.query(copyIntoTemp);
 	await client.query(updateTDCards, [deckUrl]);
 	fs.unlinkSync(tempFile);
