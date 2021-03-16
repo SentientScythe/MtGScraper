@@ -32,7 +32,7 @@ let aggregateCardStats = async () => {
 	const decks = await deckClient.query(
 		"SELECT cards, format, rank FROM mtg.tournament_decks WHERE date > '30-09-2010' AND unknown_cards_main = FALSE"
 	);
-	await deckClient.release();
+	await deckClient.end();
 	const rows = decks.rows;
 	const bar = new ProgressBar('Progress [:bar] :current/:total :percent :etas', {
 		total: rows.length
@@ -77,7 +77,7 @@ let aggregateCardStats = async () => {
 		bar.tick();
 	}
 
-	await cardClient.release();
+	await cardClient.end();
 	process.exit();
 };
 

@@ -70,7 +70,7 @@ let aggregateStats = async () => {
 		}
 	}
 
-	await client.release();
+	await client.end();
 };
 
 aggregateStats();
