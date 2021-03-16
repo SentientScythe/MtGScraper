@@ -73,6 +73,7 @@ let insertTrueStats = async () => {
 		bar.tick();
 	}
 
+	await client.release();
 	await browser.close();
 	process.exit();
 };
