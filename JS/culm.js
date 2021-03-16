@@ -102,8 +102,7 @@ let download_mwdeck = async (page, deckUrl) => {
 
 			if (notFound) {
 				await client.query('DELETE FROM mtg.tournament_decks WHERE deck_url = $1', [deckUrl]);
-				success = false;
-				break;
+				return false;
 			}
 
 			const extraTable = await page.evaluate(() => {
