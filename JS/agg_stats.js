@@ -45,17 +45,24 @@ let aggregateStats = async () => {
 		const keys = new Set();
 
 		for (const row of rows) {
-			for (const deckStat of row.deck_stats) {
-				const deckStatKey = deckStat[0];
+			const deckStats = row.deck_stats;
 
-				if (delimit) {
-					const deckStatKeys = '}{' === delimit ? deckStatKey.substring(1, deckStatKey.length - 1) : deckStatKey;
+			if (deckStats && typeof deckStats[Symbol.iterator] === 'function') {
+				for (const deckStat of deckStats) {
+					const deckStatKey = deckStat[0];
 
-					for (const key of deckStatKeys.split(delimit)) {
-						keys.add(key);
+					if (deckStatKey !== null && deckStatKey !== undefined) {
+						if (delimit) {
+							const deckStatKeys =
+								'}{' === delimit ? deckStatKey.substring(1, deckStatKey.length - 1) : deckStatKey;
+
+							for (const key of deckStatKeys.split(delimit)) {
+								keys.add(key);
+							}
+						} else {
+							keys.add(deckStatKey);
+						}
 					}
-				} else {
-					keys.add(deckStatKey);
 				}
 			}
 		}
@@ -77,24 +84,29 @@ let aggregateStats = async () => {
 
 			for (const key of keys.keys()) {
 				var statValue = null;
+				const deckStats = row.deck_stats;
 
-				for (const deckStat of row.deck_stats) {
-					const deckStatKeyRaw = deckStat[0];
+				if (deckStats && typeof deckStats[Symbol.iterator] === 'function') {
+					for (const deckStat of deckStats) {
+						const deckStatKeyRaw = deckStat[0];
 
-					if (delimit) {
-						const deckStatKeys =
-							'}{' === delimit ? deckStatKeyRaw.substring(1, deckStatKeyRaw.length - 1) : deckStatKeyRaw;
+						if (deckStatKeyRaw !== null && deckStatKeyRaw !== undefined) {
+							if (delimit) {
+								const deckStatKeys =
+									'}{' === delimit ? deckStatKeyRaw.substring(1, deckStatKeyRaw.length - 1) : deckStatKeyRaw;
 
-						for (const deckStatKey of deckStatKeys.split(delimit)) {
-							if (key === deckStatKey) {
-								statValue = deckStat[1];
-								break;
+								for (const deckStatKey of deckStatKeys.split(delimit)) {
+									if (key === deckStatKey) {
+										statValue = deckStat[1];
+										break;
+									}
+								}
+							} else {
+								if (key === deckStatKeyRaw) {
+									statValue = deckStat[1];
+									break;
+								}
 							}
-						}
-					} else {
-						if (key === deckStatKeyRaw) {
-							statValue = deckStat[1];
-							break;
 						}
 					}
 				}
