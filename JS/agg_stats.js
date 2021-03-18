@@ -24,6 +24,7 @@ let aggregateStats = async () => {
 		{ delimit: '', name: 'layouts' },
 		{ delimit: '}{', name: 'mana_costs' },
 		{ delimit: '', name: 'powers' },
+		{ delimit: ',', name: 'subtypes' },
 		{ delimit: ',', name: 'supertypes' },
 		{ delimit: '', name: 'toughnesses' },
 		{ delimit: ',', name: 'types' }
