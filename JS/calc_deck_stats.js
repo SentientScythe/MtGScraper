@@ -17,7 +17,17 @@ const cardClient = new Client({
 
 const ProgressBar = require('progress');
 
-const commonStats = ['colors', 'converted_mana_cost', 'mana_cost', 'power', 'subtypes', 'supertypes', 'toughness', 'types'];
+const commonStats = [
+	'colors',
+	'converted_mana_cost',
+	'keywords',
+	'mana_cost',
+	'power',
+	'subtypes',
+	'supertypes',
+	'toughness',
+	'types'
+];
 const selectCardData = 'SELECT * FROM mtg2.cards WHERE name = $1';
 
 function incrementDeck(numberOfCards, stat, stats) {
@@ -60,6 +70,7 @@ let calcDeckStats = async () => {
 			['layout', new Map()],
 			['colors', new Map()],
 			['converted_mana_cost', new Map()],
+			['keywords', new Map()],
 			['mana_cost', new Map()],
 			['power', new Map()],
 			['subtypes', new Map()],
@@ -109,7 +120,7 @@ let calcDeckStats = async () => {
 		}
 
 		await client.query(
-			'INSERT INTO mtg.deck_stats (deck_url, main, sideboard, layouts, colors, cmcs, mana_costs, powers, subtypes, supertypes, toughnesses, types) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)',
+			'INSERT INTO mtg.deck_stats (deck_url, main, sideboard, layouts, colors, cmcs, keywords, mana_costs, powers, subtypes, supertypes, toughnesses, types) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)',
 			finalData
 		);
 		bar.tick();
