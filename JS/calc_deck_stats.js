@@ -54,7 +54,6 @@ let calcDeckStats = async () => {
 		"SELECT deck_url FROM mtg.tournament_decks WHERE cards <> '{}' AND cards IS NOT NULL AND unknown_cards_main = FALSE"
 	);
 	const rows = decks.rows;
-	await client.query('TRUNCATE TABLE mtg.deck_stats');
 	const bar = new ProgressBar('Progress [:bar] :current/:total :percent :etas', {
 		total: rows.length
 	});
@@ -120,7 +119,7 @@ let calcDeckStats = async () => {
 		}
 
 		await client.query(
-			'INSERT INTO mtg.deck_stats (deck_url, main, sideboard, layouts, colors, cmcs, keywords, mana_costs, powers, subtypes, supertypes, toughnesses, types) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)',
+			'INSERT INTO mtg.deck_stats (deck_url, main, sideboard, layouts, colors, cmcs, keywords, mana_costs, powers, subtypes, supertypes, toughnesses, types) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) ON CONFLICT (deck_url) DO UPDATE SET main = $2, sideboard = $3, layouts = $4, colors = $5, cmcs = $6, keywords = $7, mana_costs = $8, powers = $9, subtypes = $10, supertypes = $11, toughnesses = $12, types = $13;',
 			finalData
 		);
 		bar.tick();
