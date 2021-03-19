@@ -4,7 +4,7 @@ const Promise = require('bluebird');
 // Promise.longStackTraces(); DEBUG ONLY
 
 const fs = require('fs');
-
+const replace = require('buffer-replace');
 const rimraf = require('rimraf');
 
 // Invoke PGSQL
@@ -154,11 +154,15 @@ let parseMwdeck = async (client, deckUrl) => {
 	const downloadPath = download + '\\';
 
 	try {
-		var file = fs.readFileSync(downloadPath + filename, 'utf8');
-		fs.writeFileSync(tempFile, file.slice(0, file.lastIndexOf('\r\n')), { encoding: 'utf8', flag: 'w' });
+		fs.writeFileSync(tempFile, replace(fs.readFileSync(downloadPath + filename, 'utf8'), '\t', ' '), {
+			encoding: 'utf8',
+			flag: 'w'
+		});
 	} catch (e) {
-		var alternateFile = fs.readFileSync(downloadPath + filename.replace(/\s/g, '_'), 'utf8');
-		fs.writeFileSync(tempFile, alternateFile.slice(0, alternateFile.lastIndexOf('\r\n')), { encoding: 'utf8', flag: 'w' });
+		fs.writeFileSync(tempFile, replace(fs.readFileSync(downloadPath + filename.replace(/\s/g, '_'), 'utf8'), '\t', ' '), {
+			encoding: 'utf8',
+			flag: 'w'
+		});
 	}
 
 	await client.query(copyIntoTemp);
