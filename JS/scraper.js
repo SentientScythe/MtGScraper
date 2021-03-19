@@ -36,15 +36,21 @@ let scrape = async () => {
 	// Invoke Puppeteer
 
 	await page.goto('https://mtgtop8.com/search');
-	const decksMatchingHtml = await page.evaluate(() => {
-		const element = document.querySelector(
-			'body > div.page > div > table > tbody > tr > td:nth-child(2) > form > table > tbody > tr:nth-child(1) > td > div'
-		);
-		return element.innerText;
-	});
-	const decksMatchingArray = await decksMatchingHtml.split(' ');
-	const decksMatching = decksMatchingArray[0];
-	const lastPage = Math.ceil(decksMatching / 25);
+
+	const getDecksMatching = async () => {
+		const decksMatchingHtml = await page.evaluate(() => {
+			const element = document.querySelector(
+				'body > div.page > div > table > tbody > tr > td:nth-child(2) > form > table > tbody > tr:nth-child(1) > td > div'
+			);
+			return element.innerText;
+		});
+
+		const decksMatchingArray = await decksMatchingHtml.split(' ');
+		return Number(decksMatchingArray[0]);
+	};
+
+	var decksMatching = getDecksMatching();
+	var lastPage = Math.ceil(decksMatching / 25);
 	const bar = new ProgressBar('Progress [:bar] :current/:total :percent :etas', { total: decksMatching });
 
 	for (i = 1; i <= lastPage; i++) {
@@ -91,7 +97,7 @@ let scrape = async () => {
 			}
 		} while (success === false);
 
-		for (const row in result) {
+		for (const row of result) {
 			await client.query(
 				'INSERT INTO mtg.tournament_decks (deck_url, deck_name, player, event_url, event_name, rank, date) VALUES ($1, $2, $3, $4, $5, $6, $7) ON CONFLICT (deck_url) DO NOTHING;',
 				row
@@ -99,6 +105,10 @@ let scrape = async () => {
 		}
 
 		bar.doTick(result.length);
+
+		if (i === lastPage) {
+			lastPage = Math.ceil(getDecksMatching() / 25);
+		}
 	}
 
 	await client.query(
