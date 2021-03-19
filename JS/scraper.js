@@ -49,7 +49,7 @@ let scrape = async () => {
 		return Number(decksMatchingArray[0]);
 	};
 
-	var decksMatching = getDecksMatching();
+	var decksMatching = await getDecksMatching();
 	var lastPage = Math.ceil(decksMatching / 25);
 	const bar = new ProgressBar('Progress [:bar] :current/:total :percent :etas', { total: decksMatching });
 
