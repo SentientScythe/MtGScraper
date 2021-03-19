@@ -54,14 +54,6 @@ let insertTrueStats = async () => {
 			success = true;
 
 			try {
-				rimraf.sync(download);
-			} catch (e) {}
-
-			try {
-				fs.mkdirSync(download);
-			} catch (e) {}
-
-			try {
 				if (await downloadMwdeck(client, deckUrl.deck_url, page)) {
 					await parseMwdeck(client, deckUrl.deck_url);
 				}
@@ -104,13 +96,20 @@ let downloadMwdeck = async (client, deckUrl, page) => {
 			});
 
 			if (notFound) {
-				await client.query('DELETE FROM mtg.tournament_decks WHERE deck_url = $1', [deckUrl]);
 				return false;
 			}
 
 			const extraTable = await page.evaluate(() => {
 				return Boolean(document.querySelector('div.R12'));
 			});
+
+			try {
+				rimraf.sync(download);
+			} catch (e) {}
+
+			try {
+				fs.mkdirSync(download);
+			} catch (e) {}
 
 			if (extraTable) {
 				try {
@@ -124,24 +123,6 @@ let downloadMwdeck = async (client, deckUrl, page) => {
 				} catch (e) {
 					await page.click(secondButton);
 				}
-			}
-
-			var fileList = [];
-			var filename = '';
-			var retry = 0;
-
-			while ((fileList.length == 0 || filename.includes('.crdownload')) && retry < 64) {
-				try {
-					fileList = fs.readdirSync(download);
-					filename = fileList[0];
-				} catch (e) {
-				} finally {
-					retry++;
-				}
-			}
-
-			if (!filename.includes('.mwDeck')) {
-				throw new Error('File is in the wrong format!');
 			}
 		} catch (e) {
 			success = false;
@@ -160,8 +141,16 @@ let parseMwdeck = async (client, deckUrl) => {
 		fs.unlinkSync(tempFile);
 	} catch (e) {}
 
-	const fileList = fs.readdirSync(download);
-	const filename = fileList[0];
+	var fileList = [];
+	var filename = '';
+
+	do {
+		try {
+			fileList = fs.readdirSync(download);
+			filename = fileList[0];
+		} catch (e) {}
+	} while (fileList.length == 0 || filename.includes('.crdownload'));
+
 	const downloadPath = download + '\\';
 
 	try {
