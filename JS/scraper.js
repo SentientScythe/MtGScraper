@@ -104,7 +104,7 @@ let scrape = async () => {
 			);
 		}
 
-		bar.doTick(result.length);
+		bar.tick(result.length);
 
 		if (i === lastPage) {
 			lastPage = Math.ceil(getDecksMatching() / 25);
