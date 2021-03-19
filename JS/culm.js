@@ -154,12 +154,11 @@ let parseMwdeck = async (client, deckUrl) => {
 	const downloadPath = download + '\\';
 
 	try {
-		fs.writeFileSync(tempFile, fs.readFileSync(downloadPath + filename, 'utf8'), { encoding: 'utf8', flag: 'w' });
+		var file = fs.readFileSync(downloadPath + filename, 'utf8');
+		fs.writeFileSync(tempFile, file.slice(0, file.lastIndexOf('\r\n')), { encoding: 'utf8', flag: 'w' });
 	} catch (e) {
-		fs.writeFileSync(tempFile, fs.readFileSync(downloadPath + filename.replace(/\s/g, '_'), 'utf8'), {
-			encoding: 'utf8',
-			flag: 'w'
-		});
+		var alternateFile = fs.readFileSync(downloadPath + filename.replace(/\s/g, '_'), 'utf8');
+		fs.writeFileSync(tempFile, alternateFile.slice(0, alternateFile.lastIndexOf('\r\n')), { encoding: 'utf8', flag: 'w' });
 	}
 
 	await client.query(copyIntoTemp);
