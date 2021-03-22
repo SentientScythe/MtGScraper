@@ -33,7 +33,6 @@ let aggregateStats = async () => {
 		const curlyDelimit = '}{' === delimit;
 		const name = stat.name;
 		const lowercase = stat.lowercase;
-		await client.query('TRUNCATE TABLE mtg.' + name + ';');
 		const response = await client.query(
 			'SELECT tds.deck_url, ' +
 				name +
@@ -82,7 +81,13 @@ let aggregateStats = async () => {
 			insertStats += 1 === i ? '$' + i : ', $' + i;
 		}
 
-		insertStats += ');';
+		insertStats += ') ON CONFLICT (deck_url) DO UPDATE SET ';
+
+		for (var j = 0; j < columns.length; j++) {
+			insertStats += 0 === j ? columns[j] + ' = $' + (j + 1) : ', ' + columns[j] + ' = $' + (j + 1);
+		}
+
+		insertStats += ';';
 
 		// Insert stats
 		for (const row of rows) {
