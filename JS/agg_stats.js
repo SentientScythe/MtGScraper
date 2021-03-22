@@ -18,21 +18,22 @@ let aggregateStats = async () => {
 	await client.connect();
 
 	for (const stat of [
-		{ delimit: '', lowercase: false, name: 'cmcs' },
-		{ delimit: ',', lowercase: false, name: 'colors' },
-		{ delimit: ',', lowercase: true, name: 'keywords' },
-		{ delimit: '', lowercase: false, name: 'layouts' },
-		{ delimit: '}{', lowercase: false, name: 'mana_costs' },
-		{ delimit: '', lowercase: false, name: 'powers' },
-		{ delimit: ',', lowercase: true, name: 'subtypes' },
-		{ delimit: ',', lowercase: true, name: 'supertypes' },
-		{ delimit: '', lowercase: false, name: 'toughnesses' },
-		{ delimit: ',', lowercase: true, name: 'types' }
+		{ delimit: '', lowercase: false, name: 'cmcs', null: '' },
+		{ delimit: ',', lowercase: false, name: 'colors', null: 'colorless' },
+		{ delimit: ',', lowercase: true, name: 'keywords', null: 'none' },
+		{ delimit: '', lowercase: false, name: 'layouts', null: '' },
+		{ delimit: '}{', lowercase: false, name: 'mana_costs', null: 'costless' },
+		{ delimit: '', lowercase: false, name: 'powers', null: 'powerless' },
+		{ delimit: ',', lowercase: true, name: 'subtypes', null: 'typeless' },
+		{ delimit: ',', lowercase: true, name: 'supertypes', null: 'typeless' },
+		{ delimit: '', lowercase: false, name: 'toughnesses', null: 'defenseless' },
+		{ delimit: ',', lowercase: true, name: 'types', null: '' }
 	]) {
 		const delimit = stat.delimit;
 		const curlyDelimit = '}{' === delimit;
-		const name = stat.name;
 		const lowercase = stat.lowercase;
+		const name = stat.name;
+		const nullColumn = stat.null;
 		const response = await client.query(
 			'SELECT tds.deck_url, ' +
 				name +
@@ -53,8 +54,10 @@ let aggregateStats = async () => {
 				for (const deckStat of deckStats) {
 					const deckStatKey = deckStat[0];
 
-					if (deckStatKey !== null && deckStatKey !== undefined) {
-						if (delimit) {
+					if (deckStatKey !== undefined) {
+						if (deckStatKey === null) {
+							keys.add(nullColumn);
+						} else if (delimit) {
 							const deckStatKeys = curlyDelimit ? deckStatKey.substring(1, deckStatKey.length - 1) : deckStatKey;
 
 							for (const key of deckStatKeys.split(delimit)) {
@@ -101,8 +104,13 @@ let aggregateStats = async () => {
 					for (const deckStat of deckStats) {
 						const deckStatKeyRaw = deckStat[0];
 
-						if (deckStatKeyRaw !== null && deckStatKeyRaw !== undefined) {
-							if (delimit) {
+						if (deckStatKeyRaw !== undefined) {
+							if (deckStatKeyRaw === null) {
+								if (key === nullColumn) {
+									statValue = deckStat[1];
+									break;
+								}
+							} else if (delimit) {
 								const deckStatKeys =
 									'}{' === delimit ? deckStatKeyRaw.substring(1, deckStatKeyRaw.length - 1) : deckStatKeyRaw;
 
