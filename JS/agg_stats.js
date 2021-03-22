@@ -38,7 +38,7 @@ let aggregateStats = async () => {
 				' deck_stats FROM mtg.tournament_decks tds LEFT JOIN mtg.deck_stats ds ON tds.deck_url = ds.deck_url WHERE unknown_cards_main = FALSE;'
 		);
 		const rows = response.rows;
-		const bar = new ProgressBar(stat + ' progress [:bar] :current/:total :percent :etas', {
+		const bar = new ProgressBar(name + ' progress [:bar] :current/:total :percent :etas', {
 			total: rows.length
 		});
 
