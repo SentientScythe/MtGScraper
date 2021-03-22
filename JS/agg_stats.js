@@ -18,19 +18,21 @@ let aggregateStats = async () => {
 	await client.connect();
 
 	for (const stat of [
-		{ delimit: '', name: 'cmcs' },
-		{ delimit: ',', name: 'colors' },
-		{ delimit: ',', name: 'keywords' },
-		{ delimit: '', name: 'layouts' },
-		{ delimit: '}{', name: 'mana_costs' },
-		{ delimit: '', name: 'powers' },
-		{ delimit: ',', name: 'subtypes' },
-		{ delimit: ',', name: 'supertypes' },
-		{ delimit: '', name: 'toughnesses' },
-		{ delimit: ',', name: 'types' }
+		{ delimit: '', lowercase: false, name: 'cmcs' },
+		{ delimit: ',', lowercase: false, name: 'colors' },
+		{ delimit: ',', lowercase: true, name: 'keywords' },
+		{ delimit: '', lowercase: false, name: 'layouts' },
+		{ delimit: '}{', lowercase: false, name: 'mana_costs' },
+		{ delimit: '', lowercase: false, name: 'powers' },
+		{ delimit: ',', lowercase: true, name: 'subtypes' },
+		{ delimit: ',', lowercase: true, name: 'supertypes' },
+		{ delimit: '', lowercase: false, name: 'toughnesses' },
+		{ delimit: ',', lowercase: true, name: 'types' }
 	]) {
 		const delimit = stat.delimit;
+		const curlyDelimit = '}{' === delimit;
 		const name = stat.name;
+		const lowercase = stat.lowercase;
 		await client.query('TRUNCATE TABLE mtg.' + name + ';');
 		const response = await client.query(
 			'SELECT tds.deck_url, ' +
@@ -54,11 +56,14 @@ let aggregateStats = async () => {
 
 					if (deckStatKey !== null && deckStatKey !== undefined) {
 						if (delimit) {
-							const deckStatKeys =
-								'}{' === delimit ? deckStatKey.substring(1, deckStatKey.length - 1) : deckStatKey;
+							const deckStatKeys = curlyDelimit ? deckStatKey.substring(1, deckStatKey.length - 1) : deckStatKey;
 
 							for (const key of deckStatKeys.split(delimit)) {
-								keys.add(key);
+								if (lowercase) {
+									keys.add(key.toLowerCase());
+								} else {
+									keys.add(key);
+								}
 							}
 						} else {
 							keys.add(deckStatKey);
@@ -97,9 +102,16 @@ let aggregateStats = async () => {
 									'}{' === delimit ? deckStatKeyRaw.substring(1, deckStatKeyRaw.length - 1) : deckStatKeyRaw;
 
 								for (const deckStatKey of deckStatKeys.split(delimit)) {
-									if (key === deckStatKey) {
-										statValue = deckStat[1];
-										break;
+									if (lowercase) {
+										if (key === deckStatKey.toLowerCase()) {
+											statValue = deckStat[1];
+											break;
+										}
+									} else {
+										if (key === deckStatKey) {
+											statValue = deckStat[1];
+											break;
+										}
 									}
 								}
 							} else {
