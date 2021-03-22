@@ -78,13 +78,13 @@ let aggregateStats = async () => {
 		var insertStats = 'INSERT INTO mtg.' + name + ' ("' + columns.join('", "') + '") VALUES (';
 
 		for (var i = 1; i <= columns.length; i++) {
-			insertStats += 1 === i ? '$' + i : ', $' + i;
+			insertStats += (1 === i ? '' : ', ') + '$' + i;
 		}
 
 		insertStats += ') ON CONFLICT (deck_url) DO UPDATE SET ';
 
-		for (var j = 0; j < columns.length; j++) {
-			insertStats += 0 === j ? '"' + columns[j] + '" = $' + (j + 1) : ', "' + columns[j] + '" = $' + (j + 1);
+		for (var j = 1; j < columns.length; j++) {
+			insertStats += (1 === j ? '' : ', ') + '"' + columns[j] + '" = $' + (j + 1);
 		}
 
 		insertStats += ';';
