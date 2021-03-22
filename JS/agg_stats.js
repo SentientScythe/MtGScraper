@@ -84,7 +84,7 @@ let aggregateStats = async () => {
 		insertStats += ') ON CONFLICT (deck_url) DO UPDATE SET ';
 
 		for (var j = 0; j < columns.length; j++) {
-			insertStats += 0 === j ? columns[j] + ' = $' + (j + 1) : ', ' + columns[j] + ' = $' + (j + 1);
+			insertStats += 0 === j ? '"' + columns[j] + '" = $' + (j + 1) : ', "' + columns[j] + '" = $' + (j + 1);
 		}
 
 		insertStats += ';';
