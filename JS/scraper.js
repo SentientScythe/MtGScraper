@@ -86,7 +86,7 @@ let scrape = async () => {
 							baseUrl + child4.children[0].getAttribute('href'),
 							child4.innerText,
 							element.children[5].innerText,
-							element.children[6].innerText
+							'00/00/00' === element.children[6].innerText ? null : element.children[6].innerText
 						]);
 					}
 
