@@ -62,7 +62,7 @@ let aggregateStats = async () => {
 
 							for (const key of deckStatKeys.split(delimit)) {
 								if (lowercase) {
-									keys.add(key.toLowerCase());
+									keys.add(key.toLowerCase().replace(/ /g, '_'));
 								} else {
 									keys.add(key);
 								}
@@ -116,7 +116,7 @@ let aggregateStats = async () => {
 
 								for (const deckStatKey of deckStatKeys.split(delimit)) {
 									if (lowercase) {
-										if (key === deckStatKey.toLowerCase()) {
+										if (key === deckStatKey.toLowerCase().replace(/ /g, '_')) {
 											statValue = deckStat[1];
 											break;
 										}
