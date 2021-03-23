@@ -27,10 +27,10 @@ let aggregateCardStats = async () => {
 	await cardClient.connect();
 	await deckClient.connect();
 	await cardClient.query(
-		'UPDATE mtg2.card_stats SET count_all = 0, count_1 = 0, count_legacy = 0, count_modern = 0, count_standard = 0, count_vintage = 0, count_block = 0, count_canadian_highlander = 0, count_edh_online = 0, count_edh_peasant = 0, count_elder_dragon_highlander = 0, count_extended = 0, count_highlander = 0, count_historic = 0, count_limited = 0, count_pauper = 0, count_peasant = 0, count_pioneer = 0'
+		'TRUNCATE TABLE mtg2.card_stats; INSERT INTO mtg2.card_stats ("name") SELECT "name" FROM mtg2.cards GROUP BY "name";'
 	);
 	const decks = await deckClient.query(
-		"SELECT cards, format, rank FROM mtg.tournament_decks WHERE date > '30-09-2010' AND unknown_cards_main = FALSE"
+		'SELECT cards, format, rank FROM mtg.tournament_decks WHERE unknown_cards_main = FALSE;'
 	);
 	await deckClient.end();
 	const rows = decks.rows;
