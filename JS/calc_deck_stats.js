@@ -28,7 +28,7 @@ const commonStats = [
 	'toughness',
 	'types'
 ];
-const selectCardData = 'SELECT * FROM mtg2.cards WHERE name = $1';
+const selectCardData = 'SELECT * FROM cards WHERE name = $1;';
 
 function incrementDeck(numberOfCards, stat, stats) {
 	stats.set(stat, stats.get(stat) + numberOfCards);
@@ -51,7 +51,7 @@ let calcDeckStats = async () => {
 	await client.connect();
 	await cardClient.connect();
 	const decks = await client.query(
-		"SELECT deck_url FROM mtg.tournament_decks WHERE cards <> '{}' AND cards IS NOT NULL AND unknown_cards_main = FALSE"
+		"SELECT deck_url FROM tournament_decks WHERE cards <> '{}' AND cards IS NOT NULL AND unknown_cards_main = FALSE AND NOT EXISTS (SELECT 1 FROM deck_stats WHERE deck_stats.deck_url = tournament_decks.deck_url);"
 	);
 	const rows = decks.rows;
 	const bar = new ProgressBar('Progress [:bar] :current/:total :percent :etas', {
@@ -60,9 +60,7 @@ let calcDeckStats = async () => {
 
 	for (const deck of rows) {
 		const deckUrl = deck.deck_url;
-		const cardsResponse = await client.query('SELECT UNNEST(cards) FROM mtg.tournament_decks WHERE deck_url = $1', [
-			deckUrl
-		]);
+		const cardsResponse = await client.query('SELECT UNNEST(cards) FROM tournament_decks WHERE deck_url = $1;', [deckUrl]);
 		var stats = new Map([
 			['main', 0],
 			['sideboard', 0],
@@ -119,7 +117,7 @@ let calcDeckStats = async () => {
 		}
 
 		await client.query(
-			'INSERT INTO mtg.deck_stats (deck_url, main, sideboard, layouts, colors, cmcs, keywords, mana_costs, powers, subtypes, supertypes, toughnesses, types) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) ON CONFLICT (deck_url) DO UPDATE SET main = $2, sideboard = $3, layouts = $4, colors = $5, cmcs = $6, keywords = $7, mana_costs = $8, powers = $9, subtypes = $10, supertypes = $11, toughnesses = $12, types = $13;',
+			'INSERT INTO deck_stats (deck_url, main, sideboard, layouts, colors, cmcs, keywords, mana_costs, powers, subtypes, supertypes, toughnesses, types) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) ON CONFLICT (deck_url) DO UPDATE SET main = $2, sideboard = $3, layouts = $4, colors = $5, cmcs = $6, keywords = $7, mana_costs = $8, powers = $9, subtypes = $10, supertypes = $11, toughnesses = $12, types = $13;',
 			finalData
 		);
 		bar.tick();
