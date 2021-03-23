@@ -35,9 +35,13 @@ let aggregateStats = async () => {
 		const name = stat.name;
 		const nullColumn = stat.null;
 		const response = await client.query(
-			'SELECT tds.deck_url, ' +
+			'SELECT tournament_decks.deck_url, ' +
 				name +
-				' deck_stats FROM mtg.tournament_decks tds LEFT JOIN mtg.deck_stats ds ON tds.deck_url = ds.deck_url WHERE unknown_cards_main = FALSE;'
+				' deck_stats FROM mtg.tournament_decks LEFT JOIN mtg.deck_stats ON tournament_decks.deck_url = deck_stats.deck_url WHERE unknown_cards_main = FALSE AND NOT EXISTS (SELECT 1 FROM mtg.' +
+				name +
+				' WHERE ' +
+				name +
+				'.deck_url = tournament_decks.deck_url);'
 		);
 		const rows = response.rows;
 		const bar = new ProgressBar(name + ' progress [:bar] :current/:total :percent :etas', {
