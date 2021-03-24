@@ -1,5 +1,5 @@
 UPDATE mtg.tournament_decks
-SET format = CASE
+SET "format" = CASE
 		WHEN event_url LIKE '%ST' THEN 'Standard'
 		WHEN event_url LIKE '%MO' THEN 'Modern'
 		WHEN event_url LIKE '%LE' THEN 'Legacy'
@@ -16,4 +16,5 @@ SET format = CASE
 		WHEN event_url LIKE '%HI' THEN 'Historic'
 		WHEN event_url LIKE '%CHL' THEN 'Canadian Highlander'
 		WHEN event_url LIKE '%BL' THEN 'Block'
-	END;
+	END
+WHERE "format" IS NULL;
