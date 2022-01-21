@@ -5,7 +5,7 @@
     "bluebird": "^3.7.2",
     "buffer-replace": "^1.0.0",
     "cross-fetch": "^3.0.6",
-    "log4js": "^6.3.0",
+    "log4js": "^6.4.0",
     "math": "0.0.3",
     "npm": "^7.6.2",
     "pg": "^8.5.1",
